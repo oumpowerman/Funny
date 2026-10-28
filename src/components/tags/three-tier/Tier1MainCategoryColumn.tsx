@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, X, Edit2, Trash2, ChevronRight } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, ChevronRight, Layers, MousePointerClick } from 'lucide-react';
 import { CategoryGroup, CategoryTag } from '../../../types/tag.types';
 
 interface Tier1MainCategoryColumnProps {
@@ -41,8 +41,8 @@ export const Tier1MainCategoryColumn: React.FC<Tier1MainCategoryColumnProps> = (
   onRequestDeleteTag,
 }) => {
   return (
-    <div className="flex flex-col h-full bg-slate-50/50 overflow-hidden">
-      <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-white">
+    <div className="flex flex-col h-full min-h-0 bg-slate-50/50 overflow-hidden">
+      <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-white shrink-0">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 text-[11px] font-bold flex items-center justify-center shrink-0">
             2
@@ -74,7 +74,7 @@ export const Tier1MainCategoryColumn: React.FC<Tier1MainCategoryColumnProps> = (
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={onSaveMainCat}
-            className="p-3 bg-blue-50/90 border-b border-blue-200 space-y-2.5"
+            className="p-3 bg-blue-50/90 border-b border-blue-200 space-y-2.5 shrink-0"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-blue-950">
@@ -137,85 +137,117 @@ export const Tier1MainCategoryColumn: React.FC<Tier1MainCategoryColumnProps> = (
       </AnimatePresence>
 
       {/* Main Categories List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {mainCategoriesInActiveGroup.length === 0 ? (
-          <div className="p-4 text-center text-xs text-slate-400 italic">
-            ยังไม่มีหมวดหลักใต้กลุ่มนี้ กด &quot;+ เพิ่มหมวดหลัก&quot; เพื่อสร้างรายการแรก
+      <div className="flex-1 min-h-0 overflow-y-auto p-2.5">
+        {!activeGroup ? (
+          <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 text-slate-400 flex items-center justify-center mb-3">
+              <MousePointerClick className="w-5 h-5" />
+            </div>
+            <p className="text-xs font-bold text-slate-600 mb-1">
+              ยังไม่ได้เลือกกลุ่มหมวดหมู่
+            </p>
+            <p className="text-[11px] text-slate-400 max-w-[210px] leading-relaxed">
+              กรุณาเลือกกลุ่มหมวดหมู่ในคอลัมน์ที่ 1 เพื่อดูหรือจัดการหมวดหมู่หลัก
+            </p>
+          </div>
+        ) : mainCategoriesInActiveGroup.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center mb-3">
+              <Layers className="w-5 h-5" />
+            </div>
+            <p className="text-xs font-bold text-slate-700 mb-1">
+              ยังไม่มีหมวดหลักใต้ &quot;{activeGroup.name}&quot;
+            </p>
+            <p className="text-[11px] text-slate-400 max-w-[220px] leading-relaxed mb-3.5">
+              สร้างหมวดหมู่หลักเพื่อใช้จัดกลุ่มเนื้อหาและเชื่อมโยงไปยังหมวดหมู่ย่อยในลำดับถัดไป
+            </p>
+            {!isEditingMainCat && (
+              <button
+                type="button"
+                onClick={onOpenAddMainCat}
+                className="text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>เพิ่มหมวดหลักรายการแรก</span>
+              </button>
+            )}
           </div>
         ) : (
-          mainCategoriesInActiveGroup.map((cat) => {
-            const isSelected = activeMainCat?.id === cat.id;
-            const subCount = tags.filter((t) => t.tier === 2 && t.parentId === cat.id).length;
+          <div className="space-y-1.5">
+            {mainCategoriesInActiveGroup.map((cat) => {
+              const isSelected = activeMainCat?.id === cat.id;
+              const subCount = tags.filter((t) => t.tier === 2 && t.parentId === cat.id).length;
 
-            return (
-              <div
-                key={cat.id}
-                onClick={() => onSelectMainCat(cat.id)}
-                className={`group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
-                  isSelected
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold'
-                    : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-800 font-medium'
-                }`}
-              >
-                <div className="min-w-0">
-                  <div className="text-xs truncate flex items-center gap-1.5">
-                    <span>{cat.name}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                        isSelected ? 'bg-blue-700/80 text-white' : 'bg-slate-100 text-slate-500'
-                      }`}
-                    >
-                      {subCount} ย่อย
-                    </span>
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => onSelectMainCat(cat.id)}
+                  className={`group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                    isSelected
+                      ? 'bg-blue-600 text-white border-blue-600 shadow-xs font-semibold'
+                      : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-800 font-medium'
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs truncate flex items-center gap-1.5">
+                      <span>{cat.name}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                          isSelected ? 'bg-blue-700/80 text-white' : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {subCount} ย่อย
+                      </span>
+                    </div>
+                    {cat.description && (
+                      <p
+                        className={`text-[10px] truncate ${
+                          isSelected ? 'text-blue-100' : 'text-slate-400'
+                        }`}
+                      >
+                        {cat.description}
+                      </p>
+                    )}
                   </div>
-                  {cat.description && (
-                    <p
-                      className={`text-[10px] truncate ${
-                        isSelected ? 'text-blue-100' : 'text-slate-400'
-                      }`}
-                    >
-                      {cat.description}
-                    </p>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={(e) => onOpenEditMainCat(cat, e)}
-                    className={`p-1 rounded-md transition-colors ${
-                      isSelected
-                        ? 'text-blue-200 hover:text-white hover:bg-blue-700'
-                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200'
-                    }`}
-                    title="แก้ไขหมวดนี้"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRequestDeleteTag(cat.id);
-                    }}
-                    className={`p-1 rounded-md transition-colors ${
-                      isSelected
-                        ? 'text-blue-200 hover:text-rose-200 hover:bg-rose-900/40'
-                        : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                    }`}
-                    title="ลบหมวดนี้ (รวมถึงหมวดย่อยด้านใน)"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                  <ChevronRight
-                    className={`w-4 h-4 transition-transform ${
-                      isSelected ? 'text-white translate-x-0.5' : 'text-slate-300'
-                    }`}
-                  />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => onOpenEditMainCat(cat, e)}
+                      className={`p-1 rounded-md transition-colors ${
+                        isSelected
+                          ? 'text-blue-200 hover:text-white hover:bg-blue-700'
+                          : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200'
+                      }`}
+                      title="แก้ไขหมวดนี้"
+                    >
+                      <Edit2 className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRequestDeleteTag(cat.id);
+                      }}
+                      className={`p-1 rounded-md transition-colors ${
+                        isSelected
+                          ? 'text-blue-200 hover:text-rose-200 hover:bg-rose-900/40'
+                          : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
+                      }`}
+                      title="ลบหมวดนี้ (รวมถึงหมวดย่อยด้านใน)"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                    <ChevronRight
+                      className={`w-4 h-4 transition-transform ${
+                        isSelected ? 'text-white translate-x-0.5' : 'text-slate-300'
+                      }`}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>

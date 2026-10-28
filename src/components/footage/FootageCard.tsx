@@ -1,8 +1,10 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FolderCheck, Bookmark } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
+import { STAGING_TAG_ID, isFootageInStaging } from '../../services/seedData';
 import { ComputedFootage } from '../../types/footage.types';
+import { hasRealDriveLink } from '../../utils/fileNameGenerator';
 import { StatusBadge } from '../ui/StatusBadge';
 import { TagPill } from '../ui/TagPill';
 
@@ -18,6 +20,8 @@ export const FootageCard: React.FC<FootageCardProps> = ({
   onQuickTagClick,
 }) => {
   const { tagMap, settings } = useCMS();
+  const hasDrive = hasRealDriveLink(footage.driveFileUrl);
+  const inStaging = isFootageInStaging(footage.tags);
 
   return (
     <motion.div
@@ -30,11 +34,31 @@ export const FootageCard: React.FC<FootageCardProps> = ({
       className="group bg-white border border-slate-200/90 rounded-2xl p-4 hover:border-slate-400 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between gap-3.5"
     >
       <div className="space-y-2.5">
-        {/* Top Row: ID + Clean Status Badge */}
+        {/* Top Row: ID + Link Readiness Badge + Clean Status Badge */}
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-bold text-slate-500 tabular-nums">
-            {footage.id}
-          </span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-sm font-bold text-slate-600 tabular-nums">
+              {footage.id}
+            </span>
+
+            {hasDrive ? (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-md"
+                title="อัปโหลดไฟล์ขึ้น Google Drive พร้อมใช้งานแล้ว"
+              >
+                <FolderCheck className="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>มีไฟล์ Drive</span>
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded-md"
+                title="เก็บลิงก์ต้นฉบับไว้ก่อน — ยังไม่ได้วางลิงก์ Google Drive"
+              >
+                <Bookmark className="w-3 h-3 text-amber-600 shrink-0" />
+                <span>รออัป Drive</span>
+              </span>
+            )}
+          </div>
 
           <StatusBadge
             status={footage.cooldownStatus}
@@ -49,21 +73,22 @@ export const FootageCard: React.FC<FootageCardProps> = ({
         </div>
 
         {/* Clip Title */}
-        <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-950 transition-colors">
+        <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-950 transition-colors">
           {footage.title}
         </h3>
       </div>
 
       {/* Bottom Row: Category Tags + Open Details Trigger */}
-      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
         <div
-          className="flex flex-wrap items-center gap-1 min-w-0"
+          className="flex flex-wrap items-center gap-1.5 min-w-0"
           onClick={(e) => e.stopPropagation()}
         >
-          {footage.tags.length === 0 ? (
-            <span className="text-xs font-medium text-rose-600">
-              ยังไม่ระบุหมวดหมู่
-            </span>
+          {inStaging ? (
+            <TagPill
+              tag={tagMap[STAGING_TAG_ID]}
+              onClick={onQuickTagClick ? () => onQuickTagClick(STAGING_TAG_ID) : undefined}
+            />
           ) : (
             footage.tags.map((tid) => (
               <TagPill
@@ -75,11 +100,12 @@ export const FootageCard: React.FC<FootageCardProps> = ({
           )}
         </div>
 
-        <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-slate-400 group-hover:text-slate-900 transition-colors shrink-0">
-          <span>รายละเอียด</span>
-          <ChevronRight className="w-3.5 h-3.5" />
+        <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-slate-500 group-hover:text-slate-900 transition-colors shrink-0">
+          <span>{inStaging ? 'จัดหมวดหมู่' : 'รายละเอียด'}</span>
+          <ChevronRight className="w-4 h-4" />
         </span>
       </div>
     </motion.div>
   );
 };
+

@@ -94,7 +94,7 @@ export const Sidebar: React.FC = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       initial={false}
-      animate={{ width: isHovered ? 248 : 72 }}
+      animate={{ width: isHovered ? 268 : 74 }}
       transition={{ type: 'spring', stiffness: 360, damping: 32 }}
       className="hidden md:flex h-screen sticky top-0 z-30 bg-white text-slate-700 flex-col justify-between shrink-0 border-r border-slate-200/90 shadow-xs select-none overflow-hidden"
     >
@@ -104,10 +104,10 @@ export const Sidebar: React.FC = () => {
           <motion.div
             whileHover={{ rotate: -4, scale: 1.03 }}
             onClick={() => setActiveTab('DASHBOARD')}
-            className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs cursor-pointer"
             title="กลับหน้าภาพรวม"
           >
-            <Tv className="w-4 h-4" />
+            <Tv className="w-5 h-5" />
           </motion.div>
 
           <AnimatePresence>
@@ -120,10 +120,10 @@ export const Sidebar: React.FC = () => {
                 onClick={() => setActiveTab('DASHBOARD')}
                 className="min-w-0 flex-1 overflow-hidden whitespace-nowrap cursor-pointer"
               >
-                <div className="text-sm font-bold text-slate-900 tracking-tight truncate">
+                <div className="text-base font-bold text-slate-900 tracking-tight truncate">
                   เรียงเรื่องลั่น
                 </div>
-                <div className="text-[11px] text-slate-500 font-medium truncate">
+                <div className="text-xs text-slate-500 font-medium truncate">
                   Footage Utilization CMS
                 </div>
               </motion.div>
@@ -143,7 +143,7 @@ export const Sidebar: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setActiveTab(item.id)}
                 title={!isHovered ? `${item.emoji} ${item.label}` : undefined}
-                className={`relative w-full flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
+                className={`relative w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors cursor-pointer ${
                   isActive
                     ? 'text-indigo-950 font-semibold'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
@@ -159,7 +159,7 @@ export const Sidebar: React.FC = () => {
 
                 <div className="relative z-10 flex items-center gap-3 min-w-0">
                   <span
-                    className="text-base leading-none shrink-0 w-6 text-center"
+                    className="text-lg leading-none shrink-0 w-6 text-center"
                     aria-hidden="true"
                   >
                     {item.emoji}
@@ -174,10 +174,10 @@ export const Sidebar: React.FC = () => {
                         transition={{ duration: 0.15 }}
                         className="min-w-0 overflow-hidden whitespace-nowrap"
                       >
-                        <div className="text-xs font-bold truncate">{item.label}</div>
+                        <div className="text-sm font-bold truncate">{item.label}</div>
                         <div
-                          className={`text-[10px] truncate ${
-                            isActive ? 'text-indigo-700' : 'text-slate-400'
+                          className={`text-xs truncate ${
+                            isActive ? 'text-indigo-700' : 'text-slate-500'
                           }`}
                         >
                           {item.sublabel}
@@ -191,10 +191,10 @@ export const Sidebar: React.FC = () => {
                   <motion.span
                     initial={{ opacity: 0, scale: 0.85 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className={`relative z-10 text-[11px] font-mono tabular-nums px-1.5 py-0.5 rounded-md shrink-0 ${
+                    className={`relative z-10 text-xs font-mono tabular-nums px-2 py-0.5 rounded-md shrink-0 ${
                       isActive
                         ? 'bg-indigo-600 text-white font-bold'
-                        : 'bg-slate-100 text-slate-600 font-semibold'
+                        : 'bg-slate-100 text-slate-700 font-semibold'
                     }`}
                   >
                     {item.count}
@@ -209,7 +209,7 @@ export const Sidebar: React.FC = () => {
       {/* Bottom Section: Neutral System & Configuration Tools */}
       <div className="p-2.5 border-t border-slate-100 bg-slate-50/50 space-y-1">
         {isHovered && (
-          <div className="px-2.5 pt-0.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          <div className="px-2.5 pt-0.5 pb-1 text-xs font-bold text-slate-500">
             ตั้งค่าและจัดการระบบ
           </div>
         )}

@@ -6,6 +6,10 @@ import {
   INITIAL_CATEGORY_GROUPS,
   INITIAL_SETTINGS,
   INITIAL_TAGS,
+  STAGING_CATEGORY_GROUP,
+  STAGING_CATEGORY_TAG,
+  STAGING_GROUP_ID,
+  STAGING_TAG_ID,
 } from './seedData';
 
 const STORAGE_KEYS = {
@@ -17,6 +21,9 @@ const STORAGE_KEYS = {
   SETTINGS: 'rrl_cms_settings_v2_e2e',
   PRODUCTION_CLEAN_SLATE: 'rrl_cms_production_clean_slate_v1',
   CLOUD_CLIPS_WIPED: 'rrl_cms_cloud_clips_wiped_v1',
+  CATEGORIES_WIPED: 'rrl_cms_categories_wiped_v1',
+  DELETED_TAG_IDS: 'rrl_cms_deleted_tag_ids_v1',
+  DELETED_GROUP_IDS: 'rrl_cms_deleted_group_ids_v1',
 };
 
 /**
@@ -59,27 +66,96 @@ export const cmsRepository = {
     }
   },
 
-  getTags(): CategoryTag[] {
+  isCategoriesWiped(): boolean {
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.TAGS);
-      if (!raw) {
-        localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(INITIAL_TAGS));
-        return INITIAL_TAGS;
-      }
-      const parsed: CategoryTag[] = JSON.parse(raw);
-      let needsSave = false;
+      return localStorage.getItem(STORAGE_KEYS.CATEGORIES_WIPED) === 'true';
+    } catch {
+      return false;
+    }
+  },
 
-      // 1. Migrate existing tags if missing tier
-      const migratedTier = parsed.map((t) => {
+  setCategoriesWiped(wiped: boolean): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES_WIPED, wiped ? 'true' : 'false');
+    } catch {
+      // ignore storage errors
+    }
+  },
+
+  getDeletedTagIds(): Set<string> {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DELETED_TAG_IDS);
+      if (!raw) return new Set();
+      return new Set(JSON.parse(raw) as string[]);
+    } catch {
+      return new Set();
+    }
+  },
+
+  markTagIdsDeleted(tagIds: string[]): void {
+    try {
+      const current = this.getDeletedTagIds();
+      tagIds.forEach((id) => current.add(id));
+      localStorage.setItem(STORAGE_KEYS.DELETED_TAG_IDS, JSON.stringify(Array.from(current)));
+    } catch {
+      // ignore storage errors
+    }
+  },
+
+  clearDeletedTagIds(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.DELETED_TAG_IDS);
+    } catch {
+      // ignore storage errors
+    }
+  },
+
+  getDeletedGroupIds(): Set<string> {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DELETED_GROUP_IDS);
+      if (!raw) return new Set();
+      return new Set(JSON.parse(raw) as string[]);
+    } catch {
+      return new Set();
+    }
+  },
+
+  markGroupIdsDeleted(groupIds: string[]): void {
+    try {
+      const current = this.getDeletedGroupIds();
+      groupIds.forEach((id) => current.add(id));
+      localStorage.setItem(STORAGE_KEYS.DELETED_GROUP_IDS, JSON.stringify(Array.from(current)));
+    } catch {
+      // ignore storage errors
+    }
+  },
+
+  clearDeletedGroupIds(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.DELETED_GROUP_IDS);
+    } catch {
+      // ignore storage errors
+    }
+  },
+
+  /**
+   * Normalizes and repairs a list of CategoryTags so tier, parentId, and groupId are always intact.
+   */
+  normalizeAndRepairTags(rawTags: CategoryTag[], includeMissingSeeds: boolean): CategoryTag[] {
+    const deletedIds = this.getDeletedTagIds();
+
+    // 1. Migrate existing tags if missing tier
+    const migratedTier = rawTags
+      .filter((t) => t && t.id && !deletedIds.has(t.id))
+      .map((t) => {
         if (!t.tier) {
-          needsSave = true;
           if (t.id === 'TAG-0003') {
             return {
               ...t,
-              name: 'พี่แจ๊ส ชวนชื่น',
+              name: t.name || 'พี่แจ๊ส ชวนชื่น',
               tier: 2 as const,
               parentId: 'TAG-0004',
-              entityType: 'PERSON' as const,
+              entityType: t.entityType || ('PERSON' as const),
             };
           }
           return {
@@ -88,50 +164,184 @@ export const cmsRepository = {
             parentId: t.parentId || null,
           };
         }
-        return t;
+        return {
+          ...t,
+          tier: (t.tier === 2 || !!t.parentId ? 2 : 1) as 1 | 2,
+          parentId: t.tier === 2 || !!t.parentId ? t.parentId || null : null,
+        };
       });
 
-      // 2. Deduplicate by id & backfill groupId for Tier 1 and Tier 2 tags
-      const parentGroupMap: Record<string, string> = {};
-      for (const t of migratedTier) {
-        if (t.tier === 1 || !t.parentId) {
-          parentGroupMap[t.id] = t.groupId || `GRP-${t.groupType || 'GENERAL'}`;
+    // 2. Deduplicate by id
+    const seenIds = new Set<string>();
+    const deduped: CategoryTag[] = [];
+    for (const t of migratedTier) {
+      if (seenIds.has(t.id)) continue;
+      seenIds.add(t.id);
+      deduped.push(t);
+    }
+
+    // 3. Always ensure system staging category is present (unless all categories are wiped)
+    if (!this.isCategoriesWiped() && !seenIds.has(STAGING_TAG_ID)) {
+      seenIds.add(STAGING_TAG_ID);
+      deduped.unshift({ ...STAGING_CATEGORY_TAG });
+    }
+
+    // 3b. Merge missing Tier 1/2 seed tags if not intentionally wiped/deleted
+    if (includeMissingSeeds && !this.isCategoriesWiped()) {
+      for (const seed of INITIAL_TAGS) {
+        if (!seenIds.has(seed.id) && !deletedIds.has(seed.id)) {
+          seenIds.add(seed.id);
+          deduped.push({ ...seed });
         }
       }
+    }
 
-      const seenIds = new Set<string>();
-      const migrated: CategoryTag[] = [];
-      for (const t of migratedTier) {
-        if (seenIds.has(t.id)) {
-          needsSave = true;
-          continue;
-        }
-        seenIds.add(t.id);
-
-        const expectedGroupId =
-          t.groupId ||
-          (t.parentId ? parentGroupMap[t.parentId] : undefined) ||
-          `GRP-${t.groupType || 'GENERAL'}`;
-
-        if (t.groupId !== expectedGroupId) {
-          needsSave = true;
-          migrated.push({ ...t, groupId: expectedGroupId });
-        } else {
-          migrated.push(t);
+    // 4. Ensure any Tier 2 subcategory whose parent Tier 1 category is missing (and wasn't deleted)
+    // gets its parent Tier 1 category restored if it's a known seed category
+    const seedLookup = new Map(INITIAL_TAGS.map((s) => [s.id, s]));
+    for (const t of [...deduped]) {
+      if (t.tier === 2 && t.parentId && !seenIds.has(t.parentId) && !deletedIds.has(t.parentId)) {
+        const parentSeed = seedLookup.get(t.parentId);
+        if (parentSeed) {
+          seenIds.add(parentSeed.id);
+          deduped.unshift({ ...parentSeed });
         }
       }
+    }
 
-      // 3. Merge missing Tier 1/2 seed tags if user had older seed tags
-      const missingSeeds = INITIAL_TAGS.filter((seed) => !seenIds.has(seed.id));
-      if (missingSeeds.length > 0) {
-        needsSave = true;
-        migrated.push(...missingSeeds);
+    // 5. Backfill groupId for Tier 1 and Tier 2 tags
+    const parentGroupMap: Record<string, string> = {};
+    for (const t of deduped) {
+      if (t.tier === 1 || !t.parentId) {
+        parentGroupMap[t.id] = t.groupId || `GRP-${t.groupType || 'GENERAL'}`;
       }
+    }
 
-      if (needsSave) {
-        localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(migrated));
+    return deduped.map((t) => {
+      const expectedGroupId =
+        t.groupId ||
+        (t.parentId ? parentGroupMap[t.parentId] : undefined) ||
+        `GRP-${t.groupType || 'GENERAL'}`;
+      return t.groupId === expectedGroupId ? t : { ...t, groupId: expectedGroupId };
+    });
+  },
+
+  /**
+   * Reconciles a cloud snapshot of CategoryTags with current local CategoryTags so that
+   * partial cloud snapshots (e.g. when editing a single Tier 3 item while Firestore lacked the rest)
+   * never wipe out Tier 2 or Tier 3 items.
+   */
+  reconcileTagsWithHierarchy(
+    cloudTags: CategoryTag[],
+    localTags: CategoryTag[]
+  ): { tags: CategoryTag[]; needsCloudRepair: boolean } {
+    if (this.isCategoriesWiped() && cloudTags.length === 0) {
+      return { tags: [], needsCloudRepair: false };
+    }
+
+    const deletedIds = this.getDeletedTagIds();
+    const mergedMap = new Map<string, CategoryTag>();
+
+    // Start with local tags (excluding explicitly deleted ones)
+    for (const lt of localTags) {
+      if (!deletedIds.has(lt.id)) {
+        mergedMap.set(lt.id, lt);
       }
-      return migrated;
+    }
+
+    // Overlay cloud tags (cloud updates win for matching IDs, while preserving tier/parentId if cloud lacked them)
+    for (const ct of cloudTags) {
+      if (deletedIds.has(ct.id)) continue;
+      const existing = mergedMap.get(ct.id);
+      if (existing) {
+        const resolvedTier: 1 | 2 = ct.tier || existing.tier || (ct.parentId || existing.parentId ? 2 : 1);
+        const resolvedParentId =
+          resolvedTier === 2 ? ct.parentId ?? existing.parentId ?? null : null;
+        mergedMap.set(ct.id, {
+          ...existing,
+          ...ct,
+          tier: resolvedTier,
+          parentId: resolvedParentId,
+          groupId: ct.groupId || existing.groupId,
+        });
+      } else {
+        mergedMap.set(ct.id, ct);
+      }
+    }
+
+    const repaired = this.normalizeAndRepairTags(
+      Array.from(mergedMap.values()),
+      !this.isCategoriesWiped()
+    );
+
+    const cloudIdSet = new Set(cloudTags.map((c) => c.id));
+    const needsCloudRepair = repaired.some((r) => !cloudIdSet.has(r.id));
+
+    return {
+      tags: repaired,
+      needsCloudRepair,
+    };
+  },
+
+  reconcileCategoryGroups(
+    cloudGroups: CategoryGroup[],
+    localGroups: CategoryGroup[]
+  ): { groups: CategoryGroup[]; needsCloudRepair: boolean } {
+    if (this.isCategoriesWiped() && cloudGroups.length === 0) {
+      return { groups: [], needsCloudRepair: false };
+    }
+
+    const deletedGroupIds = this.getDeletedGroupIds();
+    const mergedMap = new Map<string, CategoryGroup>();
+
+    for (const lg of localGroups) {
+      if (!deletedGroupIds.has(lg.id)) {
+        mergedMap.set(lg.id, lg);
+      }
+    }
+
+    for (const cg of cloudGroups) {
+      if (deletedGroupIds.has(cg.id)) continue;
+      const existing = mergedMap.get(cg.id);
+      mergedMap.set(cg.id, existing ? { ...existing, ...cg } : cg);
+    }
+
+    if (!this.isCategoriesWiped()) {
+      if (!mergedMap.has(STAGING_GROUP_ID)) {
+        mergedMap.set(STAGING_GROUP_ID, { ...STAGING_CATEGORY_GROUP });
+      }
+      for (const seedGrp of INITIAL_CATEGORY_GROUPS) {
+        if (!mergedMap.has(seedGrp.id) && !deletedGroupIds.has(seedGrp.id)) {
+          mergedMap.set(seedGrp.id, { ...seedGrp });
+        }
+      }
+    }
+
+    const groups = Array.from(mergedMap.values()).sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+    const cloudIdSet = new Set(cloudGroups.map((g) => g.id));
+    const needsCloudRepair = groups.some((g) => !cloudIdSet.has(g.id));
+
+    return {
+      groups,
+      needsCloudRepair,
+    };
+  },
+
+  getTags(): CategoryTag[] {
+    try {
+      if (this.isCategoriesWiped()) {
+        return [];
+      }
+      const raw = localStorage.getItem(STORAGE_KEYS.TAGS);
+      if (!raw) {
+        const initial = this.normalizeAndRepairTags(INITIAL_TAGS, true);
+        localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(initial));
+        return initial;
+      }
+      const parsed: CategoryTag[] = JSON.parse(raw);
+      const repaired = this.normalizeAndRepairTags(parsed, true);
+      localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(repaired));
+      return repaired;
     } catch {
       return INITIAL_TAGS;
     }
@@ -236,12 +446,22 @@ export const cmsRepository = {
 
   getCategoryGroups(): CategoryGroup[] {
     try {
+      if (this.isCategoriesWiped()) {
+        return [];
+      }
       const raw = localStorage.getItem(STORAGE_KEYS.GROUPS);
       if (!raw) {
         localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(INITIAL_CATEGORY_GROUPS));
         return INITIAL_CATEGORY_GROUPS;
       }
-      return JSON.parse(raw);
+      const parsed: CategoryGroup[] = JSON.parse(raw);
+      if (parsed.length === 0) {
+        localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(INITIAL_CATEGORY_GROUPS));
+        return INITIAL_CATEGORY_GROUPS;
+      }
+      const { groups: reconciled } = this.reconcileCategoryGroups(parsed, INITIAL_CATEGORY_GROUPS);
+      localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(reconciled));
+      return reconciled;
     } catch {
       return INITIAL_CATEGORY_GROUPS;
     }
@@ -252,8 +472,26 @@ export const cmsRepository = {
   },
 
   wipeAllCategories(): void {
+    this.setCategoriesWiped(true);
     localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify([]));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify([]));
+  },
+
+  restoreDefaultCategories(): {
+    categoryGroups: CategoryGroup[];
+    tags: CategoryTag[];
+  } {
+    this.setCategoriesWiped(false);
+    this.clearDeletedTagIds();
+    this.clearDeletedGroupIds();
+    const groups = INITIAL_CATEGORY_GROUPS.map((g) => ({ ...g }));
+    const tags = INITIAL_TAGS.map((t) => ({ ...t }));
+    localStorage.setItem(STORAGE_KEYS.GROUPS, JSON.stringify(groups));
+    localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(tags));
+    return {
+      categoryGroups: groups,
+      tags,
+    };
   },
 
   clearAllClips(): void {
@@ -271,13 +509,12 @@ export const cmsRepository = {
     episodes: Episode[];
     settings: SystemSettings;
   } {
-    const currentGroups = this.getCategoryGroups();
-    const currentTags = this.getTags();
+    const { categoryGroups, tags } = this.restoreDefaultCategories();
     const currentSettings = this.getSettings();
     this.clearAllClips();
     return {
-      categoryGroups: currentGroups,
-      tags: currentTags,
+      categoryGroups,
+      tags,
       sources: [],
       footage: [],
       episodes: [],

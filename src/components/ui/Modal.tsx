@@ -54,15 +54,15 @@ export const Modal: React.FC<ModalProps> = ({
           >
             <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-slate-200 bg-slate-50/80">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900">{title}</h2>
-                {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+                <h2 className="text-lg sm:text-xl font-bold text-slate-900">{title}</h2>
+                {subtitle && <p className="text-sm text-slate-600 mt-1">{subtitle}</p>}
               </div>
               <motion.button
                 type="button"
                 whileHover={{ scale: 1.08, rotate: 90 }}
                 whileTap={{ scale: 0.92 }}
                 onClick={onClose}
-                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 rounded-xl transition-colors"
+                className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 rounded-xl transition-colors cursor-pointer"
                 aria-label="ปิดหน้าต่าง"
               >
                 <X className="w-5 h-5" />

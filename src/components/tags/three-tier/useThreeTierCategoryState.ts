@@ -159,7 +159,10 @@ export const useThreeTierCategoryState = () => {
         color: mainCatFormColor,
         description: mainCatFormDesc.trim(),
         groupId: activeGroup.id,
+        tier: 1,
+        parentId: null,
       });
+      setSelectedMainCatId(editingMainCatId);
     } else {
       const created = createTag(
         mainCatFormName.trim(),
@@ -174,6 +177,7 @@ export const useThreeTierCategoryState = () => {
       setSelectedMainCatId(created.id);
     }
     setIsEditingMainCat(false);
+    setEditingMainCatId(null);
   };
 
   // Handlers for Subcategory Form
@@ -204,7 +208,11 @@ export const useThreeTierCategoryState = () => {
         name: subCatFormName.trim(),
         entityType: subCatFormType,
         description: subCatFormDesc.trim(),
+        tier: 2,
+        parentId: activeMainCat.id,
+        groupId: activeMainCat.groupId || activeGroup?.id,
       });
+      setSelectedMainCatId(activeMainCat.id);
     } else {
       createSubcategory(
         activeMainCat.id,
@@ -213,8 +221,10 @@ export const useThreeTierCategoryState = () => {
         activeMainCat.color || 'amber',
         subCatFormDesc.trim()
       );
+      setSelectedMainCatId(activeMainCat.id);
     }
     setIsEditingSubCat(false);
+    setEditingSubCatId(null);
   };
 
   const handleConfirmWipe = () => {
@@ -243,7 +253,11 @@ export const useThreeTierCategoryState = () => {
 
   const handleRestoreDefaultsAndSelect = () => {
     restoreDefaultCategories();
-    setSelectedGroupId(categoryGroups[0]?.id || 'GRP-PERSON');
+    setSelectedGroupId('GRP-PERSON');
+    setSelectedMainCatId('TAG-0004');
+    setIsEditingGroup(false);
+    setIsEditingMainCat(false);
+    setIsEditingSubCat(false);
   };
 
   const handleSelectGroup = (groupId: string) => {

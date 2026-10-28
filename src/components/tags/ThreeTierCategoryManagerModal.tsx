@@ -83,7 +83,7 @@ export const ThreeTierCategoryManagerModal: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-6xl h-[85vh] max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header Bar */}
         <ThreeTierModalHeader
           onRequestWipe={() => setShowWipeConfirm(true)}
@@ -91,15 +91,15 @@ export const ThreeTierCategoryManagerModal: React.FC = () => {
           onClose={() => setIsThreeTierManagerOpen(false)}
         />
 
-        {/* Empty State when 0 Groups exist */}
-        {categoryGroups.length === 0 ? (
+        {/* Empty State when 0 Groups exist and not currently adding a new group */}
+        {categoryGroups.length === 0 && !isEditingGroup ? (
           <ThreeTierEmptyState
             onOpenAddGroup={handleOpenAddGroup}
-            onRestoreDefaults={restoreDefaultCategories}
+            onRestoreDefaults={handleRestoreDefaultsAndSelect}
           />
         ) : (
           /* 3-Column Cascading Studio */
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 overflow-hidden min-h-[460px]">
+          <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200 overflow-hidden">
             {/* COLUMN 1: LEVEL 1 — กลุ่มหมวดหมู่ (Category Groups) */}
             <Tier0GroupColumn
               categoryGroups={categoryGroups}

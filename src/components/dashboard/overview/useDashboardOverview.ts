@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useCMS } from '../../../context/CMSContext';
+import { isFootageInStaging, isStagingTagId } from '../../../services/seedData';
 import { CooldownStatus } from '../../../types/footage.types';
 import {
   CategoryFilterMode,
@@ -87,7 +88,13 @@ export const useDashboardOverview = () => {
     const splitCount = computedFootage.filter((f) => f.ingestionFlow === 'SPLIT_1_TO_N').length;
 
     const usableTotal = newCount + readyCount;
-    const totalProducibleEps = Math.floor(usableTotal / 5);
+    // Exclude staging footage from 5-footage-per-1-EP quota until assigned to a real category
+    const categorizedUsableCount = computedFootage.filter(
+      (f) =>
+        !isFootageInStaging(f.tags) &&
+        (f.cooldownStatus === 'NEW_UNTOUCHED' || f.cooldownStatus === 'READY_FRESH')
+    ).length;
+    const totalProducibleEps = Math.floor(categorizedUsableCount / 5);
     const everUsedCount = computedFootage.filter((f) => f.totalUsageCount > 0).length;
     const utilizationRate = total > 0 ? Math.round((everUsedCount / total) * 100) : 0;
     const totalUsagesAllClips = computedFootage.reduce((sum, f) => sum + f.totalUsageCount, 0);
@@ -110,19 +117,23 @@ export const useDashboardOverview = () => {
     };
   }, [computedFootage]);
 
-  // 4. Actionable Production Radar
+  // 4. Actionable Production Radar (Excludes Staging Area)
   const productionRadar = useMemo<DashboardProductionRadarData>(() => {
     const readyCategories = categoryMatrix
-      .filter((c) => c.producibleEpisodesCount > 0)
+      .filter((c) => !isStagingTagId(c.tag.id) && c.producibleEpisodesCount > 0)
       .sort((a, b) => b.usableCount - a.usableCount);
 
     const almostReadyCategories = categoryMatrix
-      .filter((c) => c.usableCount >= 3 && c.usableCount < 5)
+      .filter(
+        (c) => !isStagingTagId(c.tag.id) && c.usableCount >= 3 && c.usableCount < 5
+      )
       .sort((a, b) => b.usableCount - a.usableCount);
 
     const topRoiFootages = [...computedFootage]
       .filter(
-        (f) => f.cooldownStatus === 'NEW_UNTOUCHED' || f.cooldownStatus === 'READY_FRESH'
+        (f) =>
+          !isFootageInStaging(f.tags) &&
+          (f.cooldownStatus === 'NEW_UNTOUCHED' || f.cooldownStatus === 'READY_FRESH')
       )
       .sort((a, b) => {
         if (a.cooldownStatus !== b.cooldownStatus) {
@@ -198,13 +209,18 @@ export const useDashboardOverview = () => {
           return false;
         }
         if (activeCategoryIdFilter) {
-          const childIds =
-            categoryMatrix
-              .find((c) => c.tag.id === activeCategoryIdFilter)
-              ?.subcategoryStats.map((s) => s.subcategory.id) || [];
-          const validTagIds = [activeCategoryIdFilter, ...childIds];
-          if (!ft.tags.some((tid) => validTagIds.includes(tid))) {
-            return false;
+          if (isStagingTagId(activeCategoryIdFilter)) {
+            if (!isFootageInStaging(ft.tags)) return false;
+          } else {
+            if (isFootageInStaging(ft.tags)) return false;
+            const childIds =
+              categoryMatrix
+                .find((c) => c.tag.id === activeCategoryIdFilter)
+                ?.subcategoryStats.map((s) => s.subcategory.id) || [];
+            const validTagIds = [activeCategoryIdFilter, ...childIds];
+            if (!ft.tags.some((tid) => validTagIds.includes(tid))) {
+              return false;
+            }
           }
         }
 

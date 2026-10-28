@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCMS } from '../../../context/CMSContext';
+import { isStagingGroupId, isStagingTagId } from '../../../services/seedData';
 import {
   EpisodeProductionTarget,
   EpisodeRankingSlot,
@@ -76,10 +77,12 @@ export function useEpisodeBuilder() {
     [categoryGroups, categoryGroupMap, tagMap]
   );
 
-  // Sort categories so those with >=5 ready clips come first (only Tier 1 main categories)
+  // Sort categories so those with >=5 ready clips come first (only real Tier 1 main categories, excluding Staging Area)
   const sortedCategories = useMemo(() => {
     const mainList = categoryMatrix.filter(
-      (c) => c.tag.tier === 1 || (!c.tag.parentId && !c.tag.tier)
+      (c) =>
+        !isStagingTagId(c.tag.id) &&
+        (c.tag.tier === 1 || (!c.tag.parentId && !c.tag.tier))
     );
     return [...mainList].sort((a, b) => {
       if (b.producibleEpisodesCount !== a.producibleEpisodesCount) {
@@ -102,12 +105,14 @@ export function useEpisodeBuilder() {
     useState<EpisodeProductionTarget>('MAIN_CATEGORY_VARIETY');
   const [targetSubcategoryId, setTargetSubcategoryId] = useState<string | null>(null);
 
-  // Compute Tier 0 Group Stock Stats
+  // Compute Tier 0 Group Stock Stats (excluding Staging Group)
   const groupStockStats = useMemo<GroupStockStat[]>(() => {
-    return categoryGroups.map((group) => {
-      const groupMainStats = sortedCategories.filter(
-        (stat) => resolveTagGroupId(stat.tag) === group.id
-      );
+    return categoryGroups
+      .filter((group) => !isStagingGroupId(group.id))
+      .map((group) => {
+        const groupMainStats = sortedCategories.filter(
+          (stat) => resolveTagGroupId(stat.tag) === group.id
+        );
       const groupMainIds = new Set(groupMainStats.map((s) => s.tag.id));
       const subcategoriesCount = tags.filter(
         (t) => t.tier === 2 && t.parentId && groupMainIds.has(t.parentId)

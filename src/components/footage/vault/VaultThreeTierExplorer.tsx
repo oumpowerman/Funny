@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronDown, FolderOpen, Layers, Rocket, RotateCcw } from 'lucide-react';
+import { isStagingTagId } from '../../../services/seedData';
 import { ComputedFootage } from '../../../types/footage.types';
 import { MixRecipeId } from '../../../utils/collisionDetector';
 import { TagPill } from '../../ui/TagPill';
@@ -286,7 +287,8 @@ export const VaultThreeTierExplorer: React.FC<VaultThreeTierExplorerProps> = ({
                             {activeGroupOverview.mainCategories.map((item, idx) => {
                               const isSelected =
                                 activeMainCategory?.mainTag.id === item.mainTag.id;
-                              const isReady5 = item.usableCount >= 5;
+                              const isStaging = isStagingTagId(item.mainTag.id);
+                              const isReady5 = !isStaging && item.usableCount >= 5;
 
                               return (
                                 <motion.button
@@ -324,16 +326,28 @@ export const VaultThreeTierExplorer: React.FC<VaultThreeTierExplorerProps> = ({
                                     <span className="text-xs sm:text-sm font-bold leading-snug line-clamp-1">
                                       {item.mainTag.name}
                                     </span>
-                                    {isReady5 && (
+                                    {isStaging ? (
                                       <span
-                                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 tabular-nums ${
+                                        className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
                                           isSelected
-                                            ? 'bg-emerald-400 text-slate-950'
-                                            : 'bg-emerald-100 text-emerald-800'
+                                            ? 'bg-amber-300 text-slate-950'
+                                            : 'bg-amber-100 text-amber-900'
                                         }`}
                                       >
-                                        {item.producibleEpisodes} EP
+                                        ไม่นับโควตา EP
                                       </span>
+                                    ) : (
+                                      isReady5 && (
+                                        <span
+                                          className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 tabular-nums ${
+                                            isSelected
+                                              ? 'bg-emerald-400 text-slate-950'
+                                              : 'bg-emerald-100 text-emerald-800'
+                                          }`}
+                                        >
+                                          {item.producibleEpisodes} EP
+                                        </span>
+                                      )
                                     )}
                                   </div>
 
@@ -449,21 +463,27 @@ export const VaultThreeTierExplorer: React.FC<VaultThreeTierExplorerProps> = ({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onLaunchEpisodeBuilder(
-                            activeMainCategory.mainTag.id,
-                            activeMainCategory.newCount >= 5
-                              ? 'FORMULA_ALL_NEW'
-                              : 'FORMULA_2_NEW_3_FRESH'
-                          )
-                        }
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-2xs whitespace-nowrap shrink-0 cursor-pointer"
-                      >
-                        <Rocket className="w-3.5 h-3.5 text-white" />
-                        <span>นำหมวดนี้ไปจัด 5 อันดับ →</span>
-                      </button>
+                      {isStagingTagId(activeMainCategory.mainTag.id) ? (
+                        <span className="inline-flex items-center px-3 py-2 text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 rounded-xl whitespace-nowrap shrink-0">
+                          📥 คลิกที่การ์ดคลิปเพื่อจัดเข้าหมวดหมู่จริงก่อนนำไปสร้าง EP
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onLaunchEpisodeBuilder(
+                              activeMainCategory.mainTag.id,
+                              activeMainCategory.newCount >= 5
+                                ? 'FORMULA_ALL_NEW'
+                                : 'FORMULA_2_NEW_3_FRESH'
+                            )
+                          }
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-2xs whitespace-nowrap shrink-0 cursor-pointer"
+                        >
+                          <Rocket className="w-3.5 h-3.5 text-white" />
+                          <span>นำหมวดนี้ไปจัด 5 อันดับ →</span>
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 )}

@@ -14,11 +14,14 @@ export const FootageLibraryView: React.FC = () => {
       {/* 1. Header, Quick Actions & Contextual 4-Card KPI Summary */}
       <VaultHeaderKpiSection
         totalVaultCount={vault.computedFootage.length}
+        stagingCount={vault.untaggedFootages.length}
+        isStagingFilterActive={vault.isStagingFilterActive}
         vaultMetrics={vault.vaultMetrics}
         activeScopeDescription={vault.activeScopeDescription}
         hasHierarchySelection={vault.hasHierarchySelection}
         statusFilter={vault.statusFilter}
         settings={vault.settings}
+        onToggleStagingFilter={vault.handleToggleStagingFilter}
         onStatusFilterChange={vault.setStatusFilter}
         onClearHierarchySelection={vault.handleClearHierarchySelection}
         onOpenStatusRuleModal={() => vault.setIsStatusRuleModalOpen(true)}

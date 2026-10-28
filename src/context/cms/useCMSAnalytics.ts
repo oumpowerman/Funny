@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { isFootageInStaging, isStagingTagId } from '../../services/seedData';
 import { Episode } from '../../types/episode.types';
 import { ComputedFootage, Footage } from '../../types/footage.types';
 import { RawSource } from '../../types/source.types';
@@ -73,7 +74,7 @@ export function useCMSAnalytics({
   }, [computedFootage]);
 
   const untaggedFootages = useMemo(() => {
-    return computedFootage.filter((ft) => ft.tags.length === 0);
+    return computedFootage.filter((ft) => isFootageInStaging(ft.tags));
   }, [computedFootage]);
 
   const missingDriveFootages = useMemo(() => {
@@ -82,16 +83,23 @@ export function useCMSAnalytics({
 
   const categoryMatrix = useMemo<CategoryMatrixStat[]>(() => {
     return tags.map((tag) => {
+      const isStaging = isStagingTagId(tag.id);
+
       // Direct and indirect (via subcategories) footage matching
-      const matching = computedFootage.filter((ft) => {
-        if (ft.tags.includes(tag.id)) return true;
-        // If this is a main category, also include clips tagged with its children
-        if (tag.tier === 1 || !tag.parentId) {
-          const childTagIds = tags.filter((ct) => ct.parentId === tag.id).map((ct) => ct.id);
-          return ft.tags.some((tid) => childTagIds.includes(tid));
-        }
-        return false;
-      });
+      const matching = isStaging
+        ? computedFootage.filter((ft) => isFootageInStaging(ft.tags))
+        : computedFootage.filter((ft) => {
+            if (isFootageInStaging(ft.tags)) return false;
+            if (ft.tags.includes(tag.id)) return true;
+            // If this is a main category, also include clips tagged with its children
+            if (tag.tier === 1 || !tag.parentId) {
+              const childTagIds = tags
+                .filter((ct) => ct.parentId === tag.id)
+                .map((ct) => ct.id);
+              return ft.tags.some((tid) => childTagIds.includes(tid));
+            }
+            return false;
+          });
 
       const newFootages = matching.filter((f) => f.cooldownStatus === 'NEW_UNTOUCHED');
       const readyFootages = matching.filter((f) => f.cooldownStatus === 'READY_FRESH');
@@ -100,14 +108,18 @@ export function useCMSAnalytics({
       const newCount = newFootages.length;
       const readyCount = readyFootages.length;
       const usableCount = usableFootages.length;
-      const producibleEpisodesCount = Math.floor(usableCount / 5);
-      const remainingForNextEp = 5 - (usableCount % 5);
-      const allNewEpisodesCount = Math.floor(newCount / 5);
+
+      // Staging footage is strictly excluded from 5-footage-per-1-EP quota until assigned to a real category
+      const producibleEpisodesCount = isStaging ? 0 : Math.floor(usableCount / 5);
+      const remainingForNextEp = isStaging ? 5 : 5 - (usableCount % 5);
+      const allNewEpisodesCount = isStaging ? 0 : Math.floor(newCount / 5);
 
       // Subcategory 2-tier breakdown
       const childCategories = tags.filter((t) => t.parentId === tag.id);
       const subcategoryStats: SubcategoryStat[] = childCategories.map((sub) => {
-        const subMatching = computedFootage.filter((ft) => ft.tags.includes(sub.id));
+        const subMatching = computedFootage.filter(
+          (ft) => !isFootageInStaging(ft.tags) && ft.tags.includes(sub.id)
+        );
         const subNew = subMatching.filter((f) => f.cooldownStatus === 'NEW_UNTOUCHED').length;
         const subReady = subMatching.filter((f) => f.cooldownStatus === 'READY_FRESH').length;
         const subUsable = subNew + subReady;
@@ -122,13 +134,15 @@ export function useCMSAnalytics({
       });
 
       // Special Episode readiness: subcategories with >= 5 usable clips
-      const specialEpisodeSubcategories = subcategoryStats
-        .filter((s) => s.usableCount >= 5)
-        .map((s) => ({ subcategory: s.subcategory, count: s.usableCount }));
+      const specialEpisodeSubcategories = isStaging
+        ? []
+        : subcategoryStats
+            .filter((s) => s.usableCount >= 5)
+            .map((s) => ({ subcategory: s.subcategory, count: s.usableCount }));
 
       // Variety Episode Quota: subcategories with >= 1 usable clip
       const usableSubcategoryCount = subcategoryStats.filter((s) => s.usableCount >= 1).length;
-      const varietyEpisodeQuota = usableSubcategoryCount >= 5 ? 1 : 0;
+      const varietyEpisodeQuota = isStaging ? 0 : usableSubcategoryCount >= 5 ? 1 : 0;
 
       return {
         tag,
@@ -143,8 +157,8 @@ export function useCMSAnalytics({
         producibleEpisodesCount,
         remainingForNextEp,
         allNewEpisodesCount,
-        canMakeAllNew5: newCount >= 5,
-        canMakeMix2New3Fresh: newCount >= 2 && usableCount >= 5,
+        canMakeAllNew5: isStaging ? false : newCount >= 5,
+        canMakeMix2New3Fresh: isStaging ? false : newCount >= 2 && usableCount >= 5,
         usableFootages,
         allFootages: matching,
         subcategoriesCount: childCategories.length,

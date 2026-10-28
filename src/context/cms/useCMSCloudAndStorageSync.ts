@@ -59,10 +59,25 @@ export function useCMSCloudAndStorageSync(
         });
     }
 
+    let isRepairingCloudCategories = false;
+
     const unsubCategoryGroups = firestoreService.subscribeCategoryGroups(
       (cloudGroups) => {
+        if (cmsRepository.isCategoriesWiped() && cloudGroups.length === 0) {
+          setCategoryGroups([]);
+          setIsCloudConnected(true);
+          setIsCloudSynced(true);
+          return;
+        }
+
         if (cloudGroups.length > 0) {
-          setCategoryGroups(cloudGroups);
+          setCategoryGroups((prevGroups) => {
+            const { groups: reconciledGroups } = cmsRepository.reconcileCategoryGroups(
+              cloudGroups,
+              prevGroups
+            );
+            return reconciledGroups;
+          });
         }
         setIsCloudConnected(true);
         setIsCloudSynced(true);
@@ -72,10 +87,33 @@ export function useCMSCloudAndStorageSync(
 
     const unsubCategories = firestoreService.subscribeCategories(
       (cloudCats) => {
+        if (cmsRepository.isCategoriesWiped() && cloudCats.length === 0) {
+          setTags([]);
+          setIsCloudConnected(true);
+          setIsCloudSynced(true);
+          return;
+        }
+
         if (cloudCats.length > 0) {
-          setTags(cloudCats);
           hasSeededCategories = true;
-        } else if (!hasSeededCategories) {
+          setTags((prevTags) => {
+            const { tags: reconciledTags, needsCloudRepair } =
+              cmsRepository.reconcileTagsWithHierarchy(cloudCats, prevTags);
+
+            if (needsCloudRepair && !isRepairingCloudCategories) {
+              isRepairingCloudCategories = true;
+              const currentGroups = cmsRepository.getCategoryGroups();
+              firestoreService
+                .restoreCategoriesToCloud(currentGroups, reconciledTags)
+                .catch((err) => console.warn('Cloud category hierarchy auto-repair warning:', err))
+                .finally(() => {
+                  isRepairingCloudCategories = false;
+                });
+            }
+
+            return reconciledTags;
+          });
+        } else if (!hasSeededCategories && !cmsRepository.isCategoriesWiped()) {
           hasSeededCategories = true;
           // Seed ONLY 3-tier categories and settings if Firestore has no categories yet (never seed demo clips)
           const initialGroups = cmsRepository.getCategoryGroups();

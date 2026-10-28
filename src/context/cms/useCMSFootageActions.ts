@@ -1,5 +1,6 @@
 import React from 'react';
 import { firestoreService } from '../../firebase/firestoreService';
+import { normalizeFootageTags } from '../../services/seedData';
 import { Footage } from '../../types/footage.types';
 import { RawSource, SourcePlatform } from '../../types/source.types';
 import { getReferenceTodayDate } from '../../utils/cooldownCalculator';
@@ -38,7 +39,7 @@ export function useCMSFootageActions({
       originalUrl: payload.originalUrl.trim(),
       timestampRange: null,
       durationSec: payload.durationSec || 25,
-      tags: payload.tags,
+      tags: normalizeFootageTags(payload.tags),
       driveFileUrl: payload.driveFileUrl.trim(),
       standardFileName,
       mascotNotes: payload.mascotNotes.trim(),
@@ -72,7 +73,7 @@ export function useCMSFootageActions({
         ...currentFootageIds,
         ...createdFootage.map((c) => c.id),
       ]);
-      const mergedTags = Array.from(new Set([...sourcePayload.tags, ...clip.tags]));
+      const mergedTags = normalizeFootageTags([...sourcePayload.tags, ...clip.tags]);
       const ftItem: Footage = {
         id: nextFtId,
         title: clip.title.trim(),
@@ -126,7 +127,7 @@ export function useCMSFootageActions({
         ...currentFootageIds,
         ...createdFootage.map((c) => c.id),
       ]);
-      const mergedTags = Array.from(new Set([...targetSource.tags, ...clip.tags]));
+      const mergedTags = normalizeFootageTags([...targetSource.tags, ...clip.tags]);
       const ftItem: Footage = {
         id: nextFtId,
         title: clip.title.trim(),
@@ -167,9 +168,12 @@ export function useCMSFootageActions({
       prev.map((ft) => {
         if (ft.id !== id) return ft;
         const nextTitle = updates.title !== undefined ? updates.title : ft.title;
+        const nextTags =
+          updates.tags !== undefined ? normalizeFootageTags(updates.tags) : ft.tags;
         const updatedFt = {
           ...ft,
           ...updates,
+          tags: nextTags,
           standardFileName: generateStandardFileName(ft.id, nextTitle),
         };
         firestoreService.saveFootage(updatedFt).catch((err) => console.warn('Firestore updateFootage error:', err));

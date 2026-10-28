@@ -1,47 +1,29 @@
-# แผนการจัดระเบียบ `Navbar.tsx` และ `Sidebar.tsx` ใหม่ (Declutter & Visual Hierarchy Redesign)
+# แผนการปรับปรุงหน้าต่างจัดการหมวดหมู่ 3 ชั้น (Fixed-Height 3-Tier Taxonomy Studio)
 
 ## 1. ภาพรวมการปรับปรุง (Overview)
-แก้ปัญหาแถบ `Navbar.tsx` ล้นและแย่งจุดสนใจกัน (เดิมมีปุ่มและป้ายสถานะสีสันฉูดฉาดเรียงกันถึง 9 รายการ) โดยใช้หลักการ **60-30-10 Color Discipline** และ **Top Bar Contract** เพื่อแยก **"งานโปรดักชันรายวัน (Daily Production)"** ออกจาก **"เครื่องมือตั้งค่าและดูแลระบบ (System & Admin Tools)"**:
-
-- **แถบ `Navbar.tsx` ด้านบน**: เหลือเฉพาะสิ่งที่ต้องดูและกดใช้งานประจำวัน ได้แก่ **ชื่อหน้าปัจจุบัน**, **จำนวนฟุตพร้อมใช้**, และ **ปุ่มหลัก `+ นำเข้าฟุตเทจ`** ที่โดดเด่นเพียงจุดเดียว
-- **แถบ `Sidebar.tsx` ด้านซ้าย**: รวบรวมเครื่องมือจัดการหมวดหมู่ เกณฑ์สี การซิงก์ฐานข้อมูล การล้างคลังคลิป และสถานะสิทธิ์ผู้ใช้ (Admin/Editor) ไว้ที่โซนล่างของ Sidebar ด้วยโทนสีเรียบสะอาดตา (`slate`) ไม่แย่งสายตาจากเนื้อหาหลัก
+ปรับโครงสร้างหน้าต่าง **จัดการโครงสร้างหมวดหมู่ 3 ชั้น (`ThreeTierCategoryManagerModal`)** ให้มีความสูงคงที่สมดุลที่ **85% ของความสูงหน้าจอ (`h-[85vh]`)** เพื่อป้องกันอาการหน้าต่างยืด-หดตามจำนวนหมวดหมู่หรือเมื่อเปิดฟอร์มเพิ่ม/แก้ไขข้อมูล พร้อมจัดระเบียบพื้นที่ภายในทั้ง 3 คอลัมน์ให้เลื่อนดูข้อมูลแยกกันอย่างอิสระ และแสดงผลสถานะข้อมูลว่าง (Empty State) กึ่งกลางคอลัมน์อย่างสมดุล
 
 ---
 
-## 2. ทิศทางการออกแบบและลำดับความสำคัญทางสายตา (Visual Direction)
-- **Single Focal Anchor (จุดโฟกัสเดียวบน Navbar)**:
-  - ใช้สี Accent (`bg-indigo-600 text-white font-bold`) เฉพาะกับปุ่ม **`+ นำเข้าฟุตเทจ`** เท่านั้น
-  - ยกเลิกการใช้สีรุ้ง/พาสเทลหลายสี (`emerald`, `amber`, `sky`, `rose`, `indigo`) บนแถบด้านบนทั้งหมด
-- **Clean Unboxed Typography (ลดกรอบแคปซูลซ้อนทับ)**:
-  - แสดงชื่อหน้าปัจจุบันด้านซ้ายของ Navbar ด้วยตัวอักษรที่ชัดเจน (`text-base font-bold text-slate-900`) คั่นด้วย `/` ตามด้วยคำอธิบายสั้นๆ (`text-xs text-slate-500`) โดยไม่ต้องใส่กรอบแคปซูลทึบเหมือนเดิม
-  - แสดงจำนวนฟุตพร้อมใช้เป็นข้อมูลตัวเลข (`font-mono tabular-nums`) โทนเรียบสะอาดตาด้านข้างปุ่มนำเข้าฟุตเทจ
+## 2. รายละเอียดการออกแบบและจัดวาง (UI & Layout Improvements)
+* **กรอบหน้าต่างหลักความสูงคงที่ (`h-[85vh]`)**:
+  * กำหนดขนาดกรอบ Modal หลักเป็น `h-[85vh] max-h-[85vh] w-full max-w-6xl flex flex-col overflow-hidden` เพื่อให้มีระยะขอบรอบด้านที่สมดุลและขนาดหน้าต่างนิ่งสนิทตลอดการใช้งาน
+  * ล็อกส่วนหัว (`ThreeTierModalHeader`) และส่วนท้าย (`ThreeTierModalFooter`) ให้ติดอยู่ด้านบนและด้านล่างเสมอ (`shrink-0`)
+* **การแบ่งสกรอลล์อิสระรายคอลัมน์ (Independent Column Scrolling)**:
+  * โครงสร้างตาราง 3 คอลัมน์ (`Tier 0`, `Tier 1`, `Tier 2`) ใช้ `flex-1 min-h-0 grid grid-cols-1 md:grid-cols-3` เพื่อให้แต่ละคอลัมน์รับความสูงที่เหลือทั้งหมดและมีแถบเลื่อน (`overflow-y-auto min-h-0`) แยกเป็นอิสระแม้เปิดฟอร์มเพิ่ม/แก้ไขหมวดหมู่พร้อมกัน
+* **การจัดวางเมื่อข้อมูลว่าง (Centered Empty States)**:
+  * เมื่อฐานข้อมูลว่างเปล่าทั้งหมด (`ThreeTierEmptyState`) หรือเมื่อคอลัมน์ที่ 2 (หมวดหมู่หลัก) และคอลัมน์ที่ 3 (หมวดหมู่ย่อย) ยังไม่มีรายการข้อมูล จะแสดงกล่องข้อความพร้อมไอคอนและปุ่มลัดจัดกึ่งกลางแนวตั้งและแนวนอน (`flex-1 flex flex-col items-center justify-center`) ภายในพื้นที่คอลัมน์นั้นๆ
 
 ---
 
-## 3. รายละเอียดการปรับโครงสร้างไฟล์ (Architecture & Component Changes)
-
-### 3.1 ปรับโฉม `/src/components/layout/Navbar.tsx`
-- **Desktop Top Bar (`md:flex`)**:
-  - **ฝั่งซ้าย (Page Context)**: แสดงไอคอนประจำหน้า + ชื่อหน้าปัจจุบัน (`currentTab.title`) + คำอธิบายย่อย (`currentTab.subtitle`) แบบตัวอักษรสะอาดตา อ่านง่ายทันทีที่มอง
-  - **ฝั่งขวา (Status & Primary Action)**:
-    1. **ตัวเลขฟุตพร้อมใช้ (`พร้อมใช้ X ฟุต`)**: แสดงในโทนสีเรียบ (`text-slate-600`) พร้อมจุดสีเขียวขนาดเล็กและตัวเลข `tabular-nums` (สามารถคลิกเพื่อดูเกณฑ์สี `StatusColorRulesModal` ได้ทันทีหากต้องการเช็กเงื่อนไข)
-    2. **ปุ่มหลัก `+ นำเข้าฟุตเทจ` (Primary CTA Dropdown)**: ปุ่มสี `indigo-600` ที่เด่นที่สุดบนหน้าจอ เมื่อคลิกจะกางเมนูย่อย 2 ทางเลือกเหมือนเดิม คือ:
-       - `✂️ หั่นจากไลฟ์ / คลิปยาว (1:N)` (`SourceSplitterModal`)
-       - `🎞️ เพิ่มฟุตเดี่ยวพร้อมใช้ (1:1)` (`DirectFootageModal`)
-- **Mobile Top Bar (`md:hidden`)**:
-  - ปรับให้คลีนในทิศทางเดียวกัน คือแสดงปุ่มเปิดเมนู (Hamburger) + ชื่อหน้าปัจจุบัน + จำนวนฟุตพร้อมใช้ + ปุ่ม `+ นำเข้า`
-
-### 3.2 ย้ายเครื่องมือตั้งค่าและระบบไปที่ `/src/components/layout/Sidebar.tsx`
-- **โซนบน (Primary Navigation)**: คงเมนูหลัก 5 หน้า (`ภาพรวมช่อง`, `คลังฟุตเทจ`, `หั่นคลิปยาว`, `จัด 5 อันดับ`, `คลังคลิปหลัก`) ไว้ตามเดิม
-- **โซนล่าง (System & Studio Tools Footer)**: จัดกลุ่มเครื่องมือจัดการระบบไว้ด้านล่างของ Sidebar ในโทนสีเรียบ (`text-slate-600 hover:bg-slate-100 hover:text-slate-900`) รองรับทั้งตอนหดแถบ (`72px` แสดงเฉพาะไอคอนพร้อม Tooltip) และตอนกางแถบ (`248px` แสดงชื่อเมนูครบถ้วน):
-  1. **หมวดหมู่ 3 ชั้น** (`Layers` icon) ➔ เปิด `ThreeTierCategoryManagerModal`
-  2. **เกณฑ์สี & กฎพักฟุต** (`Palette` / `Settings` icon) ➔ เปิด `StatusColorRulesModal` และ `CategoryTagManagerModal`
-  3. **ซิงก์ Cloud / ล้างคลังคลิป** (`Cloud` & `Trash2` icon) ➔ ปุ่มซิงก์ Firestore (`seedToCloud`) และปุ่มเปิด `ClearAllClipsModal`
-  4. **สถานะผู้ใช้งาน (Admin / Editor)** (`ShieldCheck` / `Lock` icon) ➔ เปิด `AuthModal` เพื่อสลับสิทธิ์หรือออกจากระบบ
-
----
-
-## 4. ขั้นตอนการตรวจสอบ (Verification Plan)
-- ตรวจสอบว่าปุ่มและ Modal ทั้งหมด (`DirectFootageModal`, `SourceSplitterModal`, `ThreeTierCategoryManagerModal`, `StatusColorRulesModal`, `CategoryTagManagerModal`, `ClearAllClipsModal`, `AuthModal`, และ `seedToCloud`) ยังคงกดเรียกใช้งานได้ครบถ้วน 100% จากตำแหน่งใหม่
-- ตรวจสอบการแสดงผลทั้งตอนหดและกาง `Sidebar` บนหน้าจอ Desktop รวมถึงเมนูบน Mobile ไม่ให้มีข้อความล้นหรือซ้อนทับกัน
-- รัน `compile_applet` เพื่อยืนยันว่าโค้ดผ่านการตรวจสอบ TypeScript และการ Build โดยไม่มีข้อผิดพลาด
+## 3. ไฟล์และส่วนประกอบที่จะดำเนินการแก้ไข (Target Components)
+1. **`src/components/tags/ThreeTierCategoryManagerModal.tsx`**
+   * ปรับคลาสความสูงของกรอบ Modal เป็น `h-[85vh] max-h-[85vh]` และปรับโครงสร้าง Container ของ Grid 3 คอลัมน์ให้รองรับ `min-h-0` อย่างสมบูรณ์
+2. **`src/components/tags/three-tier/ThreeTierHeaderAndEmpty.tsx`**
+   * กำหนด `shrink-0` ให้กับ Header และ Footer เพื่อป้องกันการถูกบีบอัดเมื่อเนื้อหาด้านในยาว
+3. **`src/components/tags/three-tier/Tier0GroupColumn.tsx`**
+   * ปรับโครงสร้าง Flex ของคอลัมน์ที่ 1 ให้รองรับ `min-h-0` ทั้งขณะแสดงรายการปกติและขณะเปิดฟอร์มเพิ่ม/แก้ไขกลุ่มหมวดหมู่
+4. **`src/components/tags/three-tier/Tier1MainCategoryColumn.tsx`**
+   * ปรับโครงสร้าง Flex และเพิ่มดีไซน์ Empty State กึ่งกลางคอลัมน์เมื่อยังไม่มีหมวดหมู่หลักในกลุ่มที่เลือก
+5. **`src/components/tags/three-tier/Tier2SubcategoryColumn.tsx`**
+   * ปรับโครงสร้าง Flex และเพิ่มดีไซน์ Empty State กึ่งกลางคอลัมน์เมื่อยังไม่ได้เลือกหมวดหมู่หลัก หรือเมื่อยังไม่มีหมวดหมู่ย่อยในหมวดหลักที่เลือก

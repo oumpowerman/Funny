@@ -1,6 +1,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { FolderTree, Plus, RotateCcw, Scissors } from 'lucide-react';
+import {
+  Filter,
+  FolderTree,
+  Inbox,
+  Plus,
+  RotateCcw,
+  Scissors,
+} from 'lucide-react';
 import { CooldownStatus } from '../../../types/footage.types';
 import { SystemSettings } from '../../../types/tag.types';
 import { AnimatedMetricNumber } from './AnimatedMetricNumber';
@@ -8,11 +15,14 @@ import { ActiveScopeDescription, VaultMetricsSummary } from './vault.types';
 
 export interface VaultHeaderKpiSectionProps {
   totalVaultCount: number;
+  stagingCount: number;
+  isStagingFilterActive: boolean;
   vaultMetrics: VaultMetricsSummary;
   activeScopeDescription: ActiveScopeDescription;
   hasHierarchySelection: boolean;
   statusFilter: CooldownStatus | 'ALL';
   settings: SystemSettings;
+  onToggleStagingFilter: () => void;
   onStatusFilterChange: (status: CooldownStatus | 'ALL') => void;
   onClearHierarchySelection: () => void;
   onOpenStatusRuleModal: () => void;
@@ -23,11 +33,14 @@ export interface VaultHeaderKpiSectionProps {
 
 export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
   totalVaultCount,
+  stagingCount,
+  isStagingFilterActive,
   vaultMetrics,
   activeScopeDescription,
   hasHierarchySelection,
   statusFilter,
   settings,
+  onToggleStagingFilter,
   onStatusFilterChange,
   onClearHierarchySelection,
   onOpenStatusRuleModal,
@@ -42,8 +55,8 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           <h1 className="text-lg sm:text-xl font-extrabold text-slate-900">
             🎞️ คลังฟุตเทจ (Footage Vault Overview)
           </h1>
-          <p className="text-xs text-slate-500">
-            สำรวจสต็อกคลิปแบบ 3 ชั้น (กลุ่มหมวดหมู่ ➔ หมวดหลัก ➔ หมวดย่อย) โดยตัวเลขการ์ดสถานะด้านบนและรายการการ์ดด้านล่างจะสลับตามสิ่งที่คุณเลือกอย่างนุ่มนวล
+          <p className="text-xs sm:text-sm text-slate-500">
+            สำรวจสต็อกคลิปแบบ 3 ชั้น (กลุ่มหมวดหมู่ ➔ หมวดหลัก ➔ หมวดย่อย) พร้อมพื้นที่พักสำหรับคลิปที่บันทึกด่วนรอจัดหมวดหมู่
           </p>
         </div>
 
@@ -84,6 +97,97 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Special Staging Area Alert Banner (พื้นที่พักรอจัดหมวดหมู่) */}
+      <motion.div
+        layout
+        className={`rounded-2xl p-4 border transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 ${
+          isStagingFilterActive
+            ? 'bg-amber-100/90 border-2 border-amber-500 ring-2 ring-amber-400/30 shadow-xs'
+            : stagingCount > 0
+            ? 'bg-amber-50/90 border-amber-300/90'
+            : 'bg-slate-50/90 border-slate-200/90'
+        }`}
+      >
+        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              isStagingFilterActive || stagingCount > 0
+                ? 'bg-amber-500 text-slate-950 shadow-2xs'
+                : 'bg-slate-200 text-slate-600'
+            }`}
+          >
+            <Inbox className="w-5 h-5" />
+          </div>
+
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm sm:text-base font-bold text-slate-900">
+                📥 พื้นที่พักรอจัดหมวดหมู่ (Staging Area)
+              </span>
+
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-mono font-bold tabular-nums rounded-lg border ${
+                  stagingCount > 0
+                    ? 'bg-amber-400 text-slate-950 border-amber-500'
+                    : 'bg-white text-slate-600 border-slate-200'
+                }`}
+              >
+                {stagingCount > 0
+                  ? `รอจัดเข้าหมวดหมู่ ${stagingCount} คลิป`
+                  : 'ไม่มีคลิปค้าง (0 คลิป)'}
+              </span>
+
+              <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-semibold text-amber-900 bg-white/90 border border-amber-200 rounded-lg">
+                ไม่นับรวมโควตา 5 ฟุต = 1 EP จนกว่าจะจัดเข้าหมวดหมู่จริง
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600">
+              {isStagingFilterActive
+                ? 'กำลังแสดงเฉพาะฟุตเทจในพื้นที่พักรอจัดหมวดหมู่ — คลิกที่การ์ดคลิปด้านล่างเพื่อเลือกหมวดหมู่จริงได้ทันที'
+                : stagingCount > 0
+                ? `มีฟุตเทจที่บันทึกด่วนรอคัดแยกอยู่ ${stagingCount} รายการ กดปุ่มกรองด้านขวาเพื่อเปิดดูและจัดเข้าหมวดหมู่จริง`
+                : 'เมื่อคุณบันทึกฟุตเทจใหม่โดยยังไม่เลือกแท็ก คลิปจะถูกเก็บไว้ในพื้นที่พักนี้โดยอัตโนมัติ'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={onToggleStagingFilter}
+            className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer shadow-2xs ${
+              isStagingFilterActive
+                ? 'bg-slate-900 hover:bg-slate-800 text-white'
+                : stagingCount > 0
+                ? 'bg-amber-500 hover:bg-amber-600 text-slate-950'
+                : 'bg-white hover:bg-amber-50 text-slate-700 border border-slate-300'
+            }`}
+          >
+            {isStagingFilterActive ? (
+              <>
+                <RotateCcw className="w-4 h-4" />
+                <span>แสดงฟุตเทจทั้งหมดในคลัง</span>
+              </>
+            ) : (
+              <>
+                <Filter className="w-4 h-4" />
+                <span>กรองดูคลิปในพื้นที่พักทันที ({stagingCount})</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={onOpenDirectFootageModal}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs sm:text-sm font-bold text-amber-950 bg-white hover:bg-amber-100/80 border border-amber-300 rounded-xl transition-colors cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-amber-700" />
+            <span>โยนคลิปเข้าพื้นที่พักด่วน</span>
+          </button>
+        </div>
+      </motion.div>
 
       {/* Active Scope Banner for the 4 KPI Cards (Animated Pill & Trail) */}
       <motion.div

@@ -108,7 +108,7 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             <option value="CATEGORY_READY_5">✅ หมวดพร้อมผลิต (≥ 5 คลิป)</option>
             <option value="RECIPE_ALL_NEW">🆕 หมวดทำคลิปใหม่ล้วน 5:0</option>
             <option value="RECIPE_SMART_MIX">♻️ หมวดทำสูตร 2 ใหม่ + 3 เก่าสด</option>
-            <option value="UNTAGGED_ONLY">⚠️ ยังไม่ระบุหมวดหมู่ ({untaggedCount})</option>
+            <option value="UNTAGGED_ONLY">📥 พื้นที่พักรอจัดหมวดหมู่ ({untaggedCount})</option>
             <option value="MISSING_DRIVE_ONLY">📂 รอลิงก์ไฟล์ Drive ({missingDriveCount})</option>
           </select>
         </div>

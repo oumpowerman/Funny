@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useCMS } from '../../../context/CMSContext';
+import {
+  STAGING_GROUP_ID,
+  STAGING_TAG_ID,
+  isFootageInStaging,
+  isStagingGroupId,
+  isStagingTagId,
+} from '../../../services/seedData';
 import { CooldownStatus, IngestionFlow } from '../../../types/footage.types';
 import { hasRealDriveLink } from '../../../utils/fileNameGenerator';
 import {
@@ -79,12 +86,17 @@ export const useFootageVault = () => {
 
     return mainTags
       .map((mainTag) => {
+        const isStaging = isStagingTagId(mainTag.id);
         const subTags = tags.filter((t) => t.parentId === mainTag.id);
         const familyIds = new Set([mainTag.id, ...subTags.map((s) => s.id)]);
 
-        const footagesInFamily = computedFootage.filter((ft) =>
-          ft.tags.some((tid) => familyIds.has(tid))
-        );
+        const footagesInFamily = isStaging
+          ? computedFootage.filter((ft) => isFootageInStaging(ft.tags))
+          : computedFootage.filter(
+              (ft) =>
+                !isFootageInStaging(ft.tags) &&
+                ft.tags.some((tid) => familyIds.has(tid))
+            );
         const usableInFamily = footagesInFamily.filter(
           (ft) =>
             ft.cooldownStatus === 'NEW_UNTOUCHED' ||
@@ -101,15 +113,21 @@ export const useFootageVault = () => {
           totalCount: footagesInFamily.length,
           usableCount: usableInFamily.length,
           newCount: newInFamily.length,
-          producibleEpisodes: Math.floor(usableInFamily.length / 5),
+          // Staging area clips do not count toward 5-footage-per-1-EP quota
+          producibleEpisodes: isStaging ? 0 : Math.floor(usableInFamily.length / 5),
         };
       })
-      .sort((a, b) => b.usableCount - a.usableCount);
+      .sort((a, b) => {
+        if (isStagingTagId(a.mainTag.id)) return -1;
+        if (isStagingTagId(b.mainTag.id)) return 1;
+        return b.usableCount - a.usableCount;
+      });
   }, [tags, computedFootage]);
 
   // Level 1: Category Groups (Clusters) with aggregated counts across their Main Categories & Subcategories
   const categoryGroupsOverview = useMemo<CategoryGroupOverviewItem[]>(() => {
     return categoryGroups.map((group) => {
+      const isStagingGrp = isStagingGroupId(group.id);
       const mainCatsInGroup = mainCategoriesOverview.filter((item) =>
         doesMainTagBelongToGroup(item.mainTag.id, group.id)
       );
@@ -119,9 +137,13 @@ export const useFootageVault = () => {
         mc.familyIds.forEach((id) => groupFamilyTagIds.add(id));
       });
 
-      const footagesInGroup = computedFootage.filter((ft) =>
-        ft.tags.some((tid) => groupFamilyTagIds.has(tid))
-      );
+      const footagesInGroup = isStagingGrp
+        ? computedFootage.filter((ft) => isFootageInStaging(ft.tags))
+        : computedFootage.filter(
+            (ft) =>
+              !isFootageInStaging(ft.tags) &&
+              ft.tags.some((tid) => groupFamilyTagIds.has(tid))
+          );
       const usableInGroup = footagesInGroup.filter(
         (ft) =>
           ft.cooldownStatus === 'NEW_UNTOUCHED' ||
@@ -180,6 +202,14 @@ export const useFootageVault = () => {
 
   // Contextual Scoped Footage (Syncs Top 4 KPI Status Cards with Selected Card Below)
   const categoryScopedFootage = useMemo(() => {
+    // 0. If Staging Area is selected via Main Category or Group
+    if (
+      selectedTagFilter.some((tid) => isStagingTagId(tid)) ||
+      isStagingGroupId(selectedGroupId)
+    ) {
+      return computedFootage.filter((ft) => isFootageInStaging(ft.tags));
+    }
+
     // 1. If a Main Category or Subcategory is selected (Level 2 or Level 3)
     if (selectedTagFilter.length > 0) {
       const expandedAllowedTags = new Set<string>();
@@ -189,21 +219,25 @@ export const useFootageVault = () => {
           .filter((t) => t.parentId === tid)
           .forEach((child) => expandedAllowedTags.add(child.id));
       });
-      return computedFootage.filter((ft) =>
-        ft.tags.some((tid) => expandedAllowedTags.has(tid))
+      return computedFootage.filter(
+        (ft) =>
+          !isFootageInStaging(ft.tags) &&
+          ft.tags.some((tid) => expandedAllowedTags.has(tid))
       );
     }
 
     // 2. If a Category Group is selected (Level 1)
     if (activeGroupOverview) {
-      return computedFootage.filter((ft) =>
-        ft.tags.some((tid) => activeGroupOverview.groupFamilyTagIds.has(tid))
+      return computedFootage.filter(
+        (ft) =>
+          !isFootageInStaging(ft.tags) &&
+          ft.tags.some((tid) => activeGroupOverview.groupFamilyTagIds.has(tid))
       );
     }
 
     // 3. Default: All footage in the vault
     return computedFootage;
-  }, [computedFootage, selectedTagFilter, tags, activeGroupOverview]);
+  }, [computedFootage, selectedTagFilter, selectedGroupId, tags, activeGroupOverview]);
 
   // Executive KPI Metrics (Dynamically reflects the selected Group / Main Category / Subcategory)
   const vaultMetrics = useMemo<VaultMetricsSummary>(() => {
@@ -324,21 +358,57 @@ export const useFootageVault = () => {
     setCurrentPage(1);
   };
 
-  // Precompute sets of category IDs for actionable readiness filters
+  const isStagingFilterActive = useMemo(() => {
+    return (
+      selectedTagFilter.some((tid) => isStagingTagId(tid)) ||
+      isStagingGroupId(selectedGroupId) ||
+      actionFilter === 'UNTAGGED_ONLY'
+    );
+  }, [selectedTagFilter, selectedGroupId, actionFilter]);
+
+  const handleToggleStagingFilter = () => {
+    if (isStagingFilterActive) {
+      setSelectedGroupId(null);
+      setSelectedTagFilter([]);
+      if (actionFilter === 'UNTAGGED_ONLY') {
+        setActionFilter('ALL');
+      }
+    } else {
+      setSelectedGroupId(STAGING_GROUP_ID);
+      setSelectedTagFilter([STAGING_TAG_ID]);
+      setStatusFilter('ALL');
+      setFlowFilter('ALL');
+      setActionFilter('ALL');
+    }
+  };
+
+  // Precompute sets of category IDs for actionable readiness filters (excluding Staging Area)
   const ready5CategoryIds = useMemo(
-    () => new Set(categoryMatrix.filter((c) => c.usableCount >= 5).map((c) => c.tag.id)),
+    () =>
+      new Set(
+        categoryMatrix
+          .filter((c) => !isStagingTagId(c.tag.id) && c.usableCount >= 5)
+          .map((c) => c.tag.id)
+      ),
     [categoryMatrix]
   );
 
   const allNew5CategoryIds = useMemo(
-    () => new Set(categoryMatrix.filter((c) => c.canMakeAllNew5).map((c) => c.tag.id)),
+    () =>
+      new Set(
+        categoryMatrix
+          .filter((c) => !isStagingTagId(c.tag.id) && c.canMakeAllNew5)
+          .map((c) => c.tag.id)
+      ),
     [categoryMatrix]
   );
 
   const smartMixCategoryIds = useMemo(
     () =>
       new Set(
-        categoryMatrix.filter((c) => c.canMakeMix2New3Fresh).map((c) => c.tag.id)
+        categoryMatrix
+          .filter((c) => !isStagingTagId(c.tag.id) && c.canMakeMix2New3Fresh)
+          .map((c) => c.tag.id)
       ),
     [categoryMatrix]
   );
@@ -363,19 +433,22 @@ export const useFootageVault = () => {
       }
 
       if (actionFilter === 'UNTAGGED_ONLY') {
-        if (ft.tags.length > 0) return false;
+        if (!isFootageInStaging(ft.tags)) return false;
       } else if (actionFilter === 'MISSING_DRIVE_ONLY') {
         if (hasRealDriveLink(ft.driveFileUrl)) return false;
       } else if (actionFilter === 'CATEGORY_READY_5') {
+        if (isFootageInStaging(ft.tags)) return false;
         const isUsable =
           ft.cooldownStatus === 'NEW_UNTOUCHED' || ft.cooldownStatus === 'READY_FRESH';
         const belongsToReadyCat = ft.tags.some((tid) => ready5CategoryIds.has(tid));
         if (!isUsable || !belongsToReadyCat) return false;
       } else if (actionFilter === 'RECIPE_ALL_NEW') {
+        if (isFootageInStaging(ft.tags)) return false;
         const isNew = ft.cooldownStatus === 'NEW_UNTOUCHED';
         const belongsToAllNewCat = ft.tags.some((tid) => allNew5CategoryIds.has(tid));
         if (!isNew || !belongsToAllNewCat) return false;
       } else if (actionFilter === 'RECIPE_SMART_MIX') {
+        if (isFootageInStaging(ft.tags)) return false;
         const isUsable =
           ft.cooldownStatus === 'NEW_UNTOUCHED' || ft.cooldownStatus === 'READY_FRESH';
         const belongsToMixCat = ft.tags.some((tid) => smartMixCategoryIds.has(tid));
@@ -490,6 +563,8 @@ export const useFootageVault = () => {
     setPageSize,
 
     // Handlers & Modal Actions
+    isStagingFilterActive,
+    handleToggleStagingFilter,
     handleSelectGroup,
     handleSelectMainCategory,
     handleSelectSubcategory,

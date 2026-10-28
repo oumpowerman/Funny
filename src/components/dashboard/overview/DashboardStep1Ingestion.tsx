@@ -153,19 +153,19 @@ export const DashboardStep1Ingestion: React.FC<DashboardStep1IngestionProps> = (
         </div>
       </div>
 
-      {/* Untagged / Missing Drive Link Alert Strip */}
+      {/* Staging Area / Missing Drive Link Alert Strip */}
       {(untaggedFootages.length > 0 || missingDriveFootages.length > 0) && (
-        <div className="p-3.5 rounded-xl bg-rose-50/80 border border-rose-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 text-rose-900 font-semibold">
-            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+        <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-300/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 text-amber-950 font-semibold">
+            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
-              มีฟุตเทจที่ต้องตรวจสอบความสมบูรณ์: รอติดแท็กหมวดหมู่ {untaggedFootages.length} รายการ · ยังไม่มีลิงก์ Google Drive {missingDriveFootages.length} รายการ
+              รายการรอจัดการเพิ่มเติม: อยู่ในพื้นที่พักรอจัดหมวดหมู่ {untaggedFootages.length} รายการ (ยังไม่นับโควตา 5 ฟุต = 1 EP) · รอลิงก์ไฟล์ Google Drive {missingDriveFootages.length} รายการ
             </span>
           </div>
           <button
             type="button"
             onClick={() => setActiveTab('FOOTAGE_LIBRARY')}
-            className="px-3 py-1 bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg font-bold transition-colors cursor-pointer shrink-0"
+            className="px-3 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg font-bold transition-colors cursor-pointer shrink-0"
           >
             ไปจัดการที่คลังฟุต →
           </button>

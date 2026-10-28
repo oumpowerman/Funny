@@ -1,17 +1,23 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
-  ArrowRight,
   Check,
-  ChevronDown,
   Copy,
-  Film,
-  FolderGit2,
-  Sparkles,
-  Tag,
-  Zap,
+  ExternalLink,
+  FolderOpen,
+  Link2,
+  MessageSquareText,
+  Clock,
+  AlertCircle,
+  BookmarkPlus,
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
+import {
+  STAGING_TAG_ID,
+  isFootageInStaging,
+  isStagingTagId,
+  normalizeFootageTags,
+} from '../../services/seedData';
 import { generateNextId, generateStandardFileName } from '../../utils/fileNameGenerator';
 import { TagSelectorInput } from '../tags/TagSelectorInput';
 import { Modal } from '../ui/Modal';
@@ -21,23 +27,20 @@ export const DirectFootageModal: React.FC = () => {
     isDirectFootageModalOpen,
     setIsDirectFootageModalOpen,
     computedFootage,
-    mainCategories,
     addDirectFootage,
   } = useCMS();
 
-  // Core Form Fields
+  // Core Fields: Title is required (*), and AT LEAST ONE of (driveFileUrl OR originalUrl) is required (*)
   const [title, setTitle] = useState('');
-  const [originalUrl, setOriginalUrl] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  // Optional Fields (Folded by default)
   const [driveFileUrl, setDriveFileUrl] = useState('');
-  const [mascotNotes, setMascotNotes] = useState('');
-  const [durationSec, setDurationSec] = useState<number>(25);
+  const [originalUrl, setOriginalUrl] = useState('');
 
-  // Progressive Focus & Folding States
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
-  const [isOptionalExpanded, setIsOptionalExpanded] = useState(false);
+  // Optional Fields (Default to Staging Area when no real category is chosen)
+  const [durationSec, setDurationSec] = useState<number>(25);
+  const [selectedTags, setSelectedTags] = useState<string[]>([STAGING_TAG_ID]);
+  const [mascotNotes, setMascotNotes] = useState('');
+
+  // Copy feedback state
   const [copiedFile, setCopiedFile] = useState(false);
 
   const previewNextId = generateNextId(
@@ -46,13 +49,14 @@ export const DirectFootageModal: React.FC = () => {
   );
   const previewFileName = generateStandardFileName(previewNextId, title || 'ชื่อช็อตฮา');
 
-  // Step Validation States
-  const isStep1Complete = Boolean(title.trim() && originalUrl.trim());
-  const isStep2Complete = selectedTags.length > 0;
-  const optionalCount =
-    (mascotNotes.trim() ? 1 : 0) +
-    (driveFileUrl.trim() ? 1 : 0) +
-    (durationSec !== 25 ? 1 : 0);
+  // Validation: Title + (Google Drive Link OR Original Clip Link)
+  const hasTitle = Boolean(title.trim());
+  const hasDriveUrl = Boolean(driveFileUrl.trim());
+  const hasOriginalUrl = Boolean(originalUrl.trim());
+  const hasAnyLink = hasDriveUrl || hasOriginalUrl;
+  const canSubmit = hasTitle && hasAnyLink;
+  const isInStaging = isFootageInStaging(selectedTags);
+  const realTagCount = selectedTags.filter((id) => !isStagingTagId(id)).length;
 
   const handleCopyPreviewName = () => {
     navigator.clipboard?.writeText(previewFileName);
@@ -62,29 +66,24 @@ export const DirectFootageModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setActiveStep(1);
-      return;
-    }
+    if (!canSubmit) return;
 
     addDirectFootage({
       title: title.trim(),
-      originalUrl: originalUrl.trim() || 'https://www.tiktok.com/@funny/video/new',
-      tags: selectedTags.length > 0 ? selectedTags : mainCategories[0]?.id ? [mainCategories[0].id] : [],
+      originalUrl: originalUrl.trim(),
+      tags: normalizeFootageTags(selectedTags),
       driveFileUrl: driveFileUrl.trim(),
       mascotNotes: mascotNotes.trim(),
       durationSec: durationSec || 25,
     });
 
-    // Reset Form to initial clean state
+    // Reset Form to initial clean state (default back to Staging Area)
     setTitle('');
-    setOriginalUrl('');
-    setSelectedTags([]);
     setDriveFileUrl('');
-    setMascotNotes('');
+    setOriginalUrl('');
     setDurationSec(25);
-    setActiveStep(1);
-    setIsOptionalExpanded(false);
+    setSelectedTags([STAGING_TAG_ID]);
+    setMascotNotes('');
     setIsDirectFootageModalOpen(false);
   };
 
@@ -92,48 +91,48 @@ export const DirectFootageModal: React.FC = () => {
     <Modal
       isOpen={isDirectFootageModalOpen}
       onClose={() => setIsDirectFootageModalOpen(false)}
-      title="📹 นำเข้าฟุตเดี่ยวพร้อมใช้ (Flow 1:1)"
-      subtitle="ระบบนำทาง 3 สเต็ปพร้อมแสงเรืองเน้นทีละขั้นตอน — กรอกเฉพาะส่วนหลักก็บันทึกได้ทันที"
-      maxWidthClass="max-w-2xl"
+      title="นำเข้าฟุตเทจเดี่ยว (Flow 1:1 — ฟาร์มฟุต หรือ เก็บคลิปน่าสนใจไว้ก่อน)"
+      subtitle="กรอกชื่อช็อตฮา และเลือกใส่ลิงก์อย่างใดอย่างหนึ่ง: ลิงก์คลิปต้นฉบับ (เก็บไว้ก่อนยังไม่ทันอัป Drive) หรือ ลิงก์ Google Drive (พร้อมใช้)"
+      maxWidthClass="max-w-3xl"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {/* =====================================================================
-            TOP BAR: Auto-ID & Standard Drive File Name Strip with Copy Action
+            TOP BAR: Auto-ID & Standard Google Drive File Name Banner
         ====================================================================== */}
-        <div className="bg-slate-900 text-white rounded-2xl px-4 py-2.5 flex items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="px-2.5 py-0.5 text-xs font-mono font-bold bg-amber-400 text-slate-950 rounded-lg shrink-0">
+        <div className="bg-slate-900 text-white rounded-2xl p-4 sm:px-5 sm:py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="px-3 py-1 text-sm font-mono font-bold tabular-nums bg-amber-400 text-slate-950 rounded-xl shrink-0">
               {previewNextId}
             </span>
             <div className="min-w-0">
-              <span className="text-[11px] text-slate-400 block truncate">
-                ชื่อไฟล์มาตรฐาน Google Drive
+              <span className="text-xs text-slate-300 font-medium block">
+                ชื่อไฟล์มาตรฐานสำหรับตั้งใน Google Drive (คัดลอกไว้ใช้ตอนอัปโหลดได้ทันที)
               </span>
               <span
-                className="text-xs font-mono font-medium text-slate-200 truncate block"
+                className="text-sm sm:text-base font-mono font-bold text-white truncate block mt-0.5"
                 title={previewFileName}
               >
-                📁 {previewFileName}
+                {previewFileName}
               </span>
             </div>
           </div>
 
           <motion.button
             type="button"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleCopyPreviewName}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl shrink-0 transition-colors cursor-pointer border border-slate-700/80"
-            title="คัดลอกชื่อไฟล์สำหรับตั้งชื่อในเครื่องก่อนอัปขึ้น Drive"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white rounded-xl shrink-0 transition-colors cursor-pointer border border-slate-700"
+            title="คัดลอกชื่อไฟล์สำหรับตั้งชื่อในเครื่องก่อนอัปขึ้น Google Drive"
           >
             {copiedFile ? (
               <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-300">คัดลอกแล้ว</span>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-300">คัดลอกชื่อไฟล์แล้ว</span>
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-slate-400" />
+                <Copy className="w-4 h-4 text-slate-300" />
                 <span>คัดลอกชื่อไฟล์</span>
               </>
             )}
@@ -141,423 +140,305 @@ export const DirectFootageModal: React.FC = () => {
         </div>
 
         {/* =====================================================================
-            PROGRESSIVE STEP RIBBON: 3 CLEAR GUIDED PHASES
+            SECTION 1: ข้อมูลหลักที่ต้องกรอก (บังคับ *) — ชื่อช็อตฮา + เลือกใส่ลิงก์อย่างน้อย 1 ช่อง
         ====================================================================== */}
-        <div className="grid grid-cols-3 gap-2 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 select-none">
-          {/* Step 1 Tab Button */}
-          <button
-            type="button"
-            onClick={() => setActiveStep(1)}
-            className={`relative p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
-              activeStep === 1
-                ? 'bg-white text-sky-950 font-bold shadow-xs border border-sky-300 ring-2 ring-sky-500/20'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
-            }`}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
-                  isStep1Complete
-                    ? 'bg-emerald-500 text-white'
-                    : activeStep === 1
-                    ? 'bg-sky-600 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                {isStep1Complete ? <Check className="w-3.5 h-3.5" /> : '1'}
-              </span>
-              <div className="min-w-0">
-                <div className="text-xs truncate">1. ข้อมูลคลิป</div>
-                <div className="text-[10px] text-slate-400 truncate hidden sm:block">
-                  {isStep1Complete ? 'กรอกครบแล้ว' : 'จำเป็นต้องกรอก'}
-                </div>
-              </div>
-            </div>
-            {isStep1Complete && (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            )}
-          </button>
-
-          {/* Step 2 Tab Button */}
-          <button
-            type="button"
-            onClick={() => setActiveStep(2)}
-            className={`relative p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
-              activeStep === 2
-                ? 'bg-white text-emerald-950 font-bold shadow-xs border border-emerald-300 ring-2 ring-emerald-500/20'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
-            }`}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
-                  isStep2Complete
-                    ? 'bg-emerald-600 text-white'
-                    : activeStep === 2
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                {isStep2Complete ? <Check className="w-3.5 h-3.5" /> : '2'}
-              </span>
-              <div className="min-w-0">
-                <div className="text-xs truncate">2. หมวดหมู่</div>
-                <div className="text-[10px] text-slate-400 truncate hidden sm:block">
-                  {selectedTags.length} แท็ก
-                </div>
-              </div>
-            </div>
-            {isStep2Complete && (
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            )}
-          </button>
-
-          {/* Step 3 Tab Button */}
-          <button
-            type="button"
-            onClick={() => {
-              setActiveStep(3);
-              setIsOptionalExpanded(true);
-            }}
-            className={`relative p-2.5 rounded-xl text-left transition-all cursor-pointer flex items-center justify-between gap-2 ${
-              activeStep === 3
-                ? 'bg-white text-amber-950 font-bold shadow-xs border border-amber-300 ring-2 ring-amber-500/20'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
-            }`}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-mono font-bold flex items-center justify-center shrink-0 ${
-                  optionalCount > 0
-                    ? 'bg-amber-500 text-white'
-                    : activeStep === 3
-                    ? 'bg-amber-600 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                3
-              </span>
-              <div className="min-w-0">
-                <div className="text-xs truncate">3. ข้อมูลเสริม</div>
-                <div className="text-[10px] text-slate-400 truncate hidden sm:block">
-                  {optionalCount > 0 ? `กรอกแล้ว ${optionalCount}` : 'ไม่บังคับ'}
-                </div>
-              </div>
-            </div>
-            {optionalCount > 0 && (
-              <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-            )}
-          </button>
-        </div>
-
-        {/* =====================================================================
-            STEP 1 SECTION (SKY / CYAN AMBIENT GLOW): Core Clip Info (Required)
-        ====================================================================== */}
-        <div
-          onClick={() => setActiveStep(1)}
-          className={`rounded-2xl p-4 sm:p-4.5 space-y-3.5 transition-all duration-200 ${
-            activeStep === 1
-              ? 'bg-white border-2 border-sky-400 ring-4 ring-sky-500/15 shadow-[0_4px_24px_rgba(14,165,233,0.14)]'
-              : 'bg-slate-50/70 border border-slate-200/90 hover:border-slate-300'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
+        <div className="rounded-2xl p-5 bg-white border-2 border-indigo-200/90 shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center ${
-                  activeStep === 1 ? 'bg-sky-600 text-white' : 'bg-slate-200 text-slate-700'
-                }`}
-              >
+              <span className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-sm font-mono font-bold flex items-center justify-center shrink-0">
                 1
               </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                🎬 ข้อมูลคลิปต้นฉบับ
-              </span>
+              <h3 className="text-base font-bold text-slate-900">
+                ข้อมูลหลักของฟุตเทจ (ระบุชื่อ + เลือกใส่ลิงก์อย่างน้อย 1 ช่อง)
+              </h3>
             </div>
 
-            <div className="flex items-center gap-2">
-              {isStep1Complete ? (
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/90 px-2 py-0.5 rounded-md">
-                  <Check className="w-3 h-3 text-emerald-600" />
-                  <span>ข้อมูลพร้อม</span>
+            {canSubmit ? (
+              hasDriveUrl && hasOriginalUrl ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>ครบทั้งลิงก์ต้นฉบับ & Google Drive</span>
+                </span>
+              ) : hasDriveUrl ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">
+                  <Check className="w-4 h-4 text-emerald-600" />
+                  <span>โหมดฟุตพร้อมใช้ (มีลิงก์ Google Drive)</span>
                 </span>
               ) : (
-                <span className="text-[11px] font-semibold text-sky-800 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md">
-                  จำเป็นต้องกรอก
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-3 py-1 rounded-lg">
+                  <BookmarkPlus className="w-4 h-4 text-indigo-600" />
+                  <span>โหมดเก็บคลิปน่าสนใจไว้ก่อน (ค่อยอัป Drive ทีหลัง)</span>
                 </span>
-              )}
-            </div>
+              )
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg">
+                <span>กรอกชื่อช็อตฮา + เลือกลิงก์อย่างน้อย 1 ช่อง (*)</span>
+              </span>
+            )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* 1.1 Footage Title (Required) */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                ชื่อช็อตฮา / รายละเอียดมุก *
+              <label className="block text-sm font-bold text-slate-900 mb-1.5">
+                ชื่อช็อตฮา / รายละเอียดมุกที่เจอ <span className="text-rose-600">*</span>
               </label>
               <input
                 type="text"
                 required
                 autoFocus
                 value={title}
-                onFocus={() => setActiveStep(1)}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="เช่น ลุงขับซาเล้งเปิดไฟเลี้ยวซ้ายแต่เลี้ยวขวา, หมาวิ่งตัดหน้านักวิ่ง..."
-                className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all placeholder:text-slate-400"
+                className="w-full px-4 py-3 text-base bg-slate-50/70 focus:bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 focus:ring-3 focus:ring-indigo-500/15 transition-all placeholder:text-slate-400 text-slate-900 font-medium"
               />
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                🔗 ลิงก์คลิปต้นฉบับ (TikTok / Reels / FB / Shorts) *
-              </label>
-              <input
-                type="url"
-                required
-                value={originalUrl}
-                onFocus={() => setActiveStep(1)}
-                onChange={(e) => setOriginalUrl(e.target.value)}
-                placeholder="https://www.tiktok.com/@creator/video/..."
-                className="w-full px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all placeholder:text-slate-400 font-mono text-xs sm:text-sm"
-              />
+            {/* 1.2 Dual Flexible Link Box: Either Original URL OR Google Drive URL (or Both) */}
+            <div className="rounded-xl bg-slate-50/90 border border-slate-200 p-4 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="text-sm font-bold text-slate-900">
+                  เลือกวางลิงก์อย่างใดอย่างหนึ่ง (หรือใส่ทั้ง 2 ลิงก์ได้เลย){' '}
+                  <span className="text-rose-600">*</span>
+                </div>
+                <span className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
+                  เจอคลิปน่าสนใจแปะลิงก์ต้นฉบับไว้ก่อนได้ ไม่ต้องรออัปขึ้น Drive
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {/* Option A: Original Clip Link (For quick bookmarking / source tracking) */}
+                <div
+                  className={`rounded-xl p-3.5 border transition-all ${
+                    hasOriginalUrl
+                      ? 'bg-indigo-50/40 border-indigo-300'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                    <label className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                      <Link2 className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <span>ทางเลือกที่ 1: ลิงก์คลิปต้นฉบับ (TikTok / Reels / FB / Shorts / YouTube)</span>
+                    </label>
+
+                    {hasOriginalUrl ? (
+                      <a
+                        href={originalUrl.trim()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>ทดสอบเปิดลิงก์ต้นฉบับ</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+                        เหมาะสำหรับเก็บคลิปที่เพิ่งเจอไว้ก่อน
+                      </span>
+                    )}
+                  </div>
+
+                  <input
+                    type="url"
+                    value={originalUrl}
+                    onChange={(e) => setOriginalUrl(e.target.value)}
+                    placeholder="https://www.tiktok.com/@creator/video/... (วางลิงก์คลิปต้นฉบับเพื่อเก็บเข้าคลังไว้ก่อนได้เลย)"
+                    className="w-full px-4 py-2.5 text-sm sm:text-base font-mono bg-slate-50/70 focus:bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/15 transition-all placeholder:text-slate-400 text-slate-900"
+                  />
+                </div>
+
+                {/* Option B: Google Drive File Link (For ready-to-use farmed footage) */}
+                <div
+                  className={`rounded-xl p-3.5 border transition-all ${
+                    hasDriveUrl
+                      ? 'bg-emerald-50/40 border-emerald-300'
+                      : 'bg-white border-slate-200'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                    <label className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                      <FolderOpen className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>ทางเลือกที่ 2: ลิงก์ไฟล์วิดีโอใน Google Drive (เมื่ออัปโหลดไฟล์แล้ว)</span>
+                    </label>
+
+                    {hasDriveUrl ? (
+                      <a
+                        href={driveFileUrl.trim()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-900 hover:underline"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>ทดสอบเปิดลิงก์ Google Drive</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs font-semibold text-slate-500">
+                        {hasOriginalUrl
+                          ? 'เว้นว่างไว้มาเติมทีหลังได้ (มีลิงก์ต้นฉบับแล้ว)'
+                          : 'สำหรับฟุตที่อัปขึ้น Google Drive พร้อมใช้งานแล้ว'}
+                      </span>
+                    )}
+                  </div>
+
+                  <input
+                    type="url"
+                    value={driveFileUrl}
+                    onChange={(e) => setDriveFileUrl(e.target.value)}
+                    placeholder="https://drive.google.com/file/d/... (หากยังไม่ได้อัปขึ้น Drive ให้ใส่ลิงก์คลิปต้นฉบับด้านบนแทน)"
+                    className="w-full px-4 py-2.5 text-sm sm:text-base font-mono bg-slate-50/70 focus:bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/15 transition-all placeholder:text-slate-400 text-slate-900"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Quick Flow Forward Shortcut if Step 1 is done */}
-          {activeStep === 1 && isStep1Complete && (
-            <div className="pt-1 flex justify-end">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveStep(2);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-200/80 rounded-lg transition-colors cursor-pointer"
-              >
-                <span>ไปต่อ: เลือกหมวดหมู่ (สเต็ป 2)</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* =====================================================================
-            STEP 2 SECTION (EMERALD AMBIENT GLOW): Category & Multi-Tags
+            SECTION 2: หมวดหมู่ 3 ชั้น & ป้ายกำกับ (กลุ่ม ➔ หมวดหลัก ➔ หมวดย่อย)
         ====================================================================== */}
-        <div
-          onClick={() => setActiveStep(2)}
-          className={`rounded-2xl p-4 sm:p-4.5 space-y-3 transition-all duration-200 ${
-            activeStep === 2
-              ? 'bg-white border-2 border-emerald-400 ring-4 ring-emerald-500/15 shadow-[0_4px_24px_rgba(16,185,129,0.14)]'
-              : 'bg-slate-50/70 border border-slate-200/90 hover:border-slate-300'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
+        <div className="rounded-2xl p-5 bg-white border border-slate-200/90 space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center ${
-                  activeStep === 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
-                }`}
-              >
+              <span className="w-7 h-7 rounded-lg bg-emerald-600 text-white text-sm font-mono font-bold flex items-center justify-center shrink-0">
                 2
               </span>
-              <span className="text-xs sm:text-sm font-bold text-slate-900">
-                🏷️ หมวดหมู่ & ป้ายกำกับฟุตเทจ
-              </span>
+              <h3 className="text-base font-bold text-slate-900">
+                หมวดหมู่ 3 ชั้น & พื้นที่พักรอจัดหมวดหมู่
+              </h3>
             </div>
 
-            <span className="text-[11px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-              เลือกแล้ว {selectedTags.length} แท็ก
+            {isInStaging ? (
+              <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-lg">
+                📥 ค่าเริ่มต้น: พื้นที่พักรอจัดหมวดหมู่ (ยังไม่เลือกแท็กจริง)
+              </span>
+            ) : (
+              <span className="text-xs font-mono tabular-nums font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">
+                เลือกหมวดหมู่จริงแล้ว {realTagCount} แท็ก
+              </span>
+            )}
+          </div>
+
+          <TagSelectorInput
+            selectedTagIds={selectedTags}
+            onChange={setSelectedTags}
+            label="เลือกกลุ่มหมวดหมู่ ➔ หมวดหลัก ➔ หมวดย่อย หรือเก็บไว้ในพื้นที่พักรอจัดหมวดหมู่ก่อน"
+            helperText="หากต้องการบันทึกเร็วๆ สามารถข้ามไปกดบันทึกได้เลย ระบบจะจัดเก็บเข้า 'พื้นที่พักรอจัดหมวดหมู่' ให้อัตโนมัติ"
+          />
+        </div>
+
+        {/* =====================================================================
+            SECTION 3: ไกด์มุกมาสคอตเชื่อมเรื่อง & ความยาวคลิป (ไม่บังคับ)
+        ====================================================================== */}
+        <div className="rounded-2xl p-5 bg-slate-50/80 border border-slate-200/90 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 text-sm font-mono font-bold flex items-center justify-center shrink-0">
+                3
+              </span>
+              <h3 className="text-base font-bold text-slate-900">
+                ไกด์มุกมาสคอตเชื่อมเรื่อง & ความยาวฟุตเทจ
+              </h3>
+            </div>
+            <span className="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
+              ไม่บังคับ
             </span>
           </div>
 
-          <div onFocus={() => setActiveStep(2)}>
-            <TagSelectorInput
-              selectedTagIds={selectedTags}
-              onChange={setSelectedTags}
-              label="คลิกเลือกแท็กหลักและแท็กย่อยที่เกี่ยวข้องด้านล่าง"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
+            <div className="sm:col-span-8">
+              <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                <MessageSquareText className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>ไกด์มุกมาสคอตเชื่อมเรื่อง / โน้ตกันลืม (Mascot Notes)</span>
+              </label>
+              <textarea
+                rows={2}
+                value={mascotNotes}
+                onChange={(e) => setMascotNotes(e.target.value)}
+                placeholder="ระบุจุดพีคของคลิป จังหวะตบมุก หรือโน้ตช่วงเวลาที่สนใจเผื่อกลับมาตัดลง Drive ทีหลัง..."
+                className="w-full px-4 py-2.5 text-sm sm:text-base bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder:text-slate-400 text-slate-900"
+              />
+            </div>
+
+            <div className="sm:col-span-4">
+              <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-slate-500 shrink-0" />
+                <span>ความยาวโดยประมาณ (วินาที)</span>
+              </label>
+              <input
+                type="number"
+                min={3}
+                max={600}
+                value={durationSec}
+                onChange={(e) => setDurationSec(Number(e.target.value))}
+                className="w-full px-4 py-2.5 text-base font-mono tabular-nums font-bold bg-white border border-slate-300 rounded-xl focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/15 transition-all text-slate-900"
+              />
+            </div>
           </div>
-
-          {/* Quick Flow Forward Shortcut if Step 2 is done */}
-          {activeStep === 2 && isStep2Complete && !isOptionalExpanded && (
-            <div className="pt-1 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
-                หากไม่มีข้อมูลเสริม สามารถกดปุ่มบันทึกด้านล่างได้ทันที
-              </span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveStep(3);
-                  setIsOptionalExpanded(true);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors cursor-pointer"
-              >
-                <span>เปิดดูข้อมูลเสริม (สเต็ป 3)</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* =====================================================================
-            STEP 3 SECTION: Collapsible Optional Details (Framer Motion Isolator)
-        ====================================================================== */}
-        <div
-          className={`rounded-2xl overflow-hidden transition-all duration-200 ${
-            activeStep === 3 && isOptionalExpanded
-              ? 'bg-white border-2 border-amber-400 ring-4 ring-amber-500/15 shadow-[0_4px_24px_rgba(245,158,11,0.14)]'
-              : 'bg-amber-50/40 border border-amber-200/80 hover:border-amber-300'
-          }`}
-        >
-          {/* Collapsible Accordion Header */}
-          <button
-            type="button"
-            onClick={() => {
-              const nextState = !isOptionalExpanded;
-              setIsOptionalExpanded(nextState);
-              if (nextState) setActiveStep(3);
-            }}
-            className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-amber-100/50 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span
-                className={`w-6 h-6 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${
-                  activeStep === 3 && isOptionalExpanded
-                    ? 'bg-amber-600 text-white'
-                    : 'bg-amber-200/80 text-amber-900'
-                }`}
-              >
-                3
-              </span>
-              <div className="min-w-0">
-                <span className="text-xs sm:text-sm font-bold text-amber-950 block truncate">
-                  ⚙️ ข้อมูลเสริม (มุกมาสคอต · ลิงก์ Drive · ความยาว)
-                </span>
-                <span className="text-[11px] text-amber-800/80 block">
-                  {optionalCount > 0
-                    ? `กรอกข้อมูลเสริมแล้ว ${optionalCount} รายการ`
-                    : 'ไม่บังคับ — พับเก็บไว้เป็นค่าเริ่มต้นเพื่อความรวดเร็ว'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              {optionalCount > 0 ? (
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-200 text-amber-950 rounded-md">
-                  มีข้อมูลแล้ว
-                </span>
-              ) : (
-                <span className="text-[11px] font-medium text-amber-700">
-                  {isOptionalExpanded ? 'พับเก็บ' : 'คลิกเพื่อเปิดกรอก'}
-                </span>
-              )}
-              <motion.div
-                animate={{ rotate: isOptionalExpanded ? 180 : 0 }}
-                transition={{ duration: 0.18 }}
-              >
-                <ChevronDown className="w-4 h-4 text-amber-800" />
-              </motion.div>
-            </div>
-          </button>
-
-          {/* Framer Motion Height Controller: strictly p-0, m-0, border-none to prevent layout jump */}
-          <AnimatePresence initial={false}>
-            {isOptionalExpanded && (
-              <motion.div
-                key="optional-fields-container"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                className="overflow-hidden p-0 m-0 border-none"
-              >
-                {/* Inner Padding Container */}
-                <div className="p-4 pt-3.5 space-y-3.5 border-t border-amber-200/70 bg-white">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-800 mb-1">
-                      🎙️ ไกด์มุกมาสคอตเชื่อมเรื่อง (Mascot Notes)
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={mascotNotes}
-                      onFocus={() => setActiveStep(3)}
-                      onChange={(e) => setMascotNotes(e.target.value)}
-                      placeholder="ระบุจุดพีคของคลิป หรือประโยคตบมุกให้คนเขียนบทมาสคอตตอนนำไปร้อยเรียง..."
-                      className="w-full px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder:text-slate-400"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-800 mb-1">
-                        📁 ลิงก์ไฟล์ใน Google Drive (ถ้าอัปโหลดแล้ว)
-                      </label>
-                      <input
-                        type="url"
-                        value={driveFileUrl}
-                        onFocus={() => setActiveStep(3)}
-                        onChange={(e) => setDriveFileUrl(e.target.value)}
-                        placeholder="https://drive.google.com/file/d/..."
-                        className="w-full px-3 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all placeholder:text-slate-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-800 mb-1">
-                        ⏱️ ความยาว (วินาที)
-                      </label>
-                      <input
-                        type="number"
-                        min={3}
-                        max={300}
-                        value={durationSec}
-                        onFocus={() => setActiveStep(3)}
-                        onChange={(e) => setDurationSec(Number(e.target.value))}
-                        className="w-full px-3 py-1.5 text-xs font-mono tabular-nums bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* =====================================================================
             ACTION BAR FOOTER
         ====================================================================== */}
-        <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-100">
-          <div className="text-xs text-slate-500">
-            {!title.trim() ? (
-              <span className="text-amber-700 font-medium flex items-center gap-1.5">
-                <span>⚠️ โปรดระบุชื่อช็อตฮาในสเต็ปที่ 1</span>
+        <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 border-t border-slate-200">
+          <div className="text-sm">
+            {!hasTitle && !hasAnyLink ? (
+              <span className="text-amber-800 font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>โปรดระบุชื่อช็อตฮา และใส่ลิงก์อย่างน้อย 1 ช่อง (ต้นฉบับ หรือ Google Drive) (*)</span>
+              </span>
+            ) : !hasTitle ? (
+              <span className="text-amber-800 font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>โปรดระบุชื่อช็อตฮา / รายละเอียดมุก (*)</span>
+              </span>
+            ) : !hasAnyLink ? (
+              <span className="text-amber-800 font-semibold flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>โปรดวางลิงก์อย่างใดอย่างหนึ่ง: ลิงก์คลิปต้นฉบับ หรือ ลิงก์ Google Drive (*)</span>
+              </span>
+            ) : hasDriveUrl ? (
+              <span className="text-emerald-700 font-bold flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>พร้อมบันทึกฟุตเดี่ยวพร้อมใช้ ({previewNextId}) เข้าคลังทันที</span>
               </span>
             ) : (
-              <span className="text-emerald-700 font-medium flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5" />
-                <span>พร้อมบันทึกฟุตเดี่ยวเข้าสู่คลังทันที</span>
+              <span className="text-indigo-700 font-bold flex items-center gap-2">
+                <BookmarkPlus className="w-4 h-4 text-indigo-600 shrink-0" />
+                <span>พร้อมบันทึกเก็บคลิปต้นฉบับ ({previewNextId}) ไว้ก่อน — ค่อยอัปขึ้น Drive ทีหลังได้</span>
               </span>
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2.5">
+          <div className="flex items-center justify-end gap-3 shrink-0">
             <motion.button
               type="button"
-              whileTap={{ scale: 0.96 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setIsDirectFootageModalOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+              className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
             >
               ยกเลิก
             </motion.button>
             <motion.button
               type="submit"
-              whileHover={{ y: -1, scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-indigo-600 rounded-xl transition-all whitespace-nowrap shadow-sm cursor-pointer"
+              disabled={!canSubmit}
+              whileHover={canSubmit ? { y: -1, scale: 1.01 } : undefined}
+              whileTap={canSubmit ? { scale: 0.97 } : undefined}
+              className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm sm:text-base font-bold rounded-xl transition-all whitespace-nowrap shadow-xs ${
+                canSubmit
+                  ? hasDriveUrl
+                    ? 'text-white bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
+                    : 'text-white bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
+                  : 'text-slate-400 bg-slate-200 cursor-not-allowed'
+              }`}
             >
-              <span>💾 บันทึกฟุตเดี่ยว ({previewNextId})</span>
-              <Check className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                {hasDriveUrl
+                  ? `บันทึกฟุตพร้อมใช้ (${previewNextId})`
+                  : hasOriginalUrl
+                  ? `บันทึกเก็บไว้ก่อน (${previewNextId})`
+                  : `บันทึกฟุตเดี่ยว (${previewNextId})`}
+              </span>
+              <Check className="w-4 h-4" />
             </motion.button>
           </div>
         </div>
@@ -565,3 +446,4 @@ export const DirectFootageModal: React.FC = () => {
     </Modal>
   );
 };
+

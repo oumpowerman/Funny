@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight } from 'lucide-react';
+import { STAGING_TAG_ID, isFootageInStaging } from '../../../services/seedData';
 import { ComputedFootage } from '../../../types/footage.types';
 import { CategoryTag, SystemSettings } from '../../../types/tag.types';
 import { PaginationBar } from '../../ui/PaginationBar';
@@ -192,10 +193,8 @@ export const VaultFootageResultsSection: React.FC<VaultFootageResultsSectionProp
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        {ft.tags.length === 0 ? (
-                          <span className="text-xs font-medium text-rose-600">
-                            ยังไม่ระบุหมวดหมู่
-                          </span>
+                        {isFootageInStaging(ft.tags) ? (
+                          <TagPill tag={tagMap[STAGING_TAG_ID]} />
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
                             {ft.tags.map((tid) => (

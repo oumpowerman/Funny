@@ -14,6 +14,34 @@ import { CategoryGroup, CategoryTag, SystemSettings } from '../types/tag.types';
 import { Episode } from '../types/episode.types';
 import { INITIAL_CATEGORY_GROUPS } from '../services/seedData';
 
+function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item)) as unknown as T;
+  }
+  if (Object.prototype.toString.call(data) === '[object Object]' && data.constructor === Object) {
+    const cleaned: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      if (value !== undefined) {
+        cleaned[key] = sanitizeForFirestore(value);
+      }
+    }
+    return cleaned as T;
+  }
+  return data;
+}
+
+function normalizeCategoryTag(raw: CategoryTag): CategoryTag {
+  const tier: 1 | 2 = raw.tier === 2 || !!raw.parentId ? 2 : 1;
+  return {
+    ...raw,
+    tier,
+    parentId: tier === 2 ? raw.parentId || null : null,
+  };
+}
+
 export const firestoreService = {
   // ==========================================
   // REALTIME SUBSCRIPTIONS
@@ -42,7 +70,7 @@ export const firestoreService = {
       (snapshot) => {
         const list: CategoryTag[] = [];
         snapshot.forEach((d) => {
-          list.push(d.data() as CategoryTag);
+          list.push(normalizeCategoryTag(d.data() as CategoryTag));
         });
         onUpdate(list);
       },
@@ -100,7 +128,11 @@ export const firestoreService = {
   // Category Group CRUD (Tier 0)
   async saveCategoryGroup(group: CategoryGroup) {
     const docRef = doc(db, 'category_groups', group.id);
-    await setDoc(docRef, { ...group, updatedAt: new Date().toISOString() }, { merge: true });
+    await setDoc(
+      docRef,
+      sanitizeForFirestore({ ...group, updatedAt: new Date().toISOString() }),
+      { merge: true }
+    );
   },
 
   async deleteCategoryGroup(groupId: string) {
@@ -111,7 +143,12 @@ export const firestoreService = {
   // Category Tag CRUD (Tier 1 & Tier 2)
   async saveCategory(category: CategoryTag) {
     const docRef = doc(db, 'categories', category.id);
-    await setDoc(docRef, { ...category, updatedAt: new Date().toISOString() }, { merge: true });
+    const normalized = normalizeCategoryTag(category);
+    await setDoc(
+      docRef,
+      sanitizeForFirestore({ ...normalized, updatedAt: new Date().toISOString() }),
+      { merge: true }
+    );
   },
 
   async deleteCategory(categoryId: string) {
@@ -124,11 +161,11 @@ export const firestoreService = {
     const docRef = doc(db, 'footages', footage.id);
     await setDoc(
       docRef,
-      {
+      sanitizeForFirestore({
         ...footage,
         updatedAt: new Date().toISOString(),
         serverUpdatedAt: serverTimestamp(),
-      },
+      }),
       { merge: true }
     );
   },
@@ -143,11 +180,11 @@ export const firestoreService = {
     const docRef = doc(db, 'episodes', episode.id);
     await setDoc(
       docRef,
-      {
+      sanitizeForFirestore({
         ...episode,
         updatedAt: new Date().toISOString(),
         serverUpdatedAt: serverTimestamp(),
-      },
+      }),
       { merge: true }
     );
   },
@@ -162,10 +199,10 @@ export const firestoreService = {
     const docRef = doc(db, 'system_settings', 'global_rules');
     await setDoc(
       docRef,
-      {
+      sanitizeForFirestore({
         ...settings,
         updatedAt: new Date().toISOString(),
-      },
+      }),
       { merge: true }
     );
   },
@@ -181,37 +218,41 @@ export const firestoreService = {
     categoryGroups: CategoryGroup[] = INITIAL_CATEGORY_GROUPS
   ) {
     const batch = writeBatch(db);
+    const now = new Date().toISOString();
 
     // Save settings
     const settingsDocRef = doc(db, 'system_settings', 'global_rules');
-    batch.set(settingsDocRef, { ...settings, updatedAt: new Date().toISOString() });
+    batch.set(settingsDocRef, sanitizeForFirestore({ ...settings, updatedAt: now }));
 
     // Seed Category Groups (Tier 0)
     for (const grp of categoryGroups) {
       const ref = doc(db, 'category_groups', grp.id);
-      batch.set(ref, { ...grp, updatedAt: new Date().toISOString() });
+      batch.set(ref, sanitizeForFirestore({ ...grp, updatedAt: now }));
     }
 
     // Seed Categories (Tier 1 & Tier 2)
     for (const cat of categories) {
       const ref = doc(db, 'categories', cat.id);
-      batch.set(ref, { ...cat, updatedAt: new Date().toISOString() });
+      const normalized = normalizeCategoryTag(cat);
+      batch.set(ref, sanitizeForFirestore({ ...normalized, updatedAt: now }));
     }
 
-    // Seed Footages (chunk if > 400 docs, but initial demo is ~30 items)
+    // Seed Footages
     for (const ft of footages) {
       const ref = doc(db, 'footages', ft.id);
-      batch.set(ref, { ...ft, updatedAt: new Date().toISOString() });
+      batch.set(ref, sanitizeForFirestore({ ...ft, updatedAt: now }));
     }
 
     // Seed Episodes
     for (const ep of episodes) {
       const ref = doc(db, 'episodes', ep.id);
-      batch.set(ref, { ...ep, updatedAt: new Date().toISOString() });
+      batch.set(ref, sanitizeForFirestore({ ...ep, updatedAt: now }));
     }
 
     await batch.commit();
-    console.info(`Successfully seeded ${categoryGroups.length} category groups, ${categories.length} categories, ${footages.length} footages, and ${episodes.length} episodes to Firestore!`);
+    console.info(
+      `Successfully seeded ${categoryGroups.length} category groups, ${categories.length} categories, ${footages.length} footages, and ${episodes.length} episodes to Firestore!`
+    );
   },
 
   // ==========================================
@@ -239,5 +280,47 @@ export const firestoreService = {
     console.info(
       `Cleared ${footagesSnap.size} footages and ${episodesSnap.size} episodes from Firestore while keeping categories and settings intact.`
     );
+  },
+
+  async clearAllCategoriesFromCloud(): Promise<void> {
+    const [groupsSnap, categoriesSnap] = await Promise.all([
+      getDocs(collection(db, 'category_groups')),
+      getDocs(collection(db, 'categories')),
+    ]);
+
+    if (groupsSnap.empty && categoriesSnap.empty) {
+      return;
+    }
+
+    const batch = writeBatch(db);
+    groupsSnap.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+    categoriesSnap.forEach((docSnap) => {
+      batch.delete(docSnap.ref);
+    });
+
+    await batch.commit();
+  },
+
+  async restoreCategoriesToCloud(
+    categoryGroups: CategoryGroup[],
+    categories: CategoryTag[]
+  ): Promise<void> {
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+
+    for (const grp of categoryGroups) {
+      const ref = doc(db, 'category_groups', grp.id);
+      batch.set(ref, sanitizeForFirestore({ ...grp, updatedAt: now }));
+    }
+
+    for (const cat of categories) {
+      const ref = doc(db, 'categories', cat.id);
+      const normalized = normalizeCategoryTag(cat);
+      batch.set(ref, sanitizeForFirestore({ ...normalized, updatedAt: now }));
+    }
+
+    await batch.commit();
   },
 };

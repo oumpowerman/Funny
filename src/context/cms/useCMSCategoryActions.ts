@@ -1,6 +1,11 @@
 import React from 'react';
 import { firestoreService } from '../../firebase/firestoreService';
 import { cmsRepository } from '../../services/cmsRepository';
+import {
+  isStagingGroupId,
+  isStagingTagId,
+  normalizeFootageTags,
+} from '../../services/seedData';
 import { Footage } from '../../types/footage.types';
 import { RawSource } from '../../types/source.types';
 import {
@@ -44,6 +49,7 @@ export function useCMSCategoryActions({
     color = 'indigo',
     description = ''
   ): CategoryGroup => {
+    cmsRepository.setCategoriesWiped(false);
     const trimmed = name.trim();
     const newGroup: CategoryGroup = {
       id: generateNextId('GRP', categoryGroups.map((g) => g.id)),
@@ -81,6 +87,8 @@ export function useCMSCategoryActions({
   };
 
   const deleteCategoryGroup = (id: string) => {
+    if (isStagingGroupId(id)) return;
+    cmsRepository.markGroupIdsDeleted([id]);
     setCategoryGroups((prev) => {
       const next = prev.filter((g) => g.id !== id);
       cmsRepository.saveCategoryGroups(next);
@@ -95,24 +103,18 @@ export function useCMSCategoryActions({
     setCategoryGroups([]);
     setTags([]);
     cmsRepository.wipeAllCategories();
+    firestoreService
+      .clearAllCategoriesFromCloud()
+      .catch((err) => console.warn('Firestore clearAllCategoriesFromCloud error:', err));
   };
 
   const restoreDefaultCategories = () => {
-    const fresh = cmsRepository.resetToSeedData();
+    const fresh = cmsRepository.restoreDefaultCategories();
     setCategoryGroups(fresh.categoryGroups);
     setTags(fresh.tags);
-    cmsRepository.saveCategoryGroups(fresh.categoryGroups);
-    cmsRepository.saveTags(fresh.tags);
-    fresh.categoryGroups.forEach((grp) => {
-      firestoreService
-        .saveCategoryGroup(grp)
-        .catch((err) => console.warn('Firestore restore group error:', err));
-    });
-    fresh.tags.forEach((cat) => {
-      firestoreService
-        .saveCategory(cat)
-        .catch((err) => console.warn('Firestore restore tag error:', err));
-    });
+    firestoreService
+      .restoreCategoriesToCloud(fresh.categoryGroups, fresh.tags)
+      .catch((err) => console.warn('Firestore restoreCategoriesToCloud error:', err));
   };
 
   // Tag & Subcategory CRUD
@@ -126,32 +128,40 @@ export function useCMSCategoryActions({
     entityType?: EntitySubtype,
     groupId?: string
   ): CategoryTag => {
+    cmsRepository.setCategoriesWiped(false);
     const trimmed = name.trim();
     const existing = tags.find(
       (t) =>
         t.name.toLowerCase() === trimmed.toLowerCase() &&
-        (parentId ? t.parentId === parentId : (!t.parentId || t.tier === 1))
+        (parentId ? t.parentId === parentId : !t.parentId || t.tier === 1)
     );
     if (existing) return existing;
+
+    const resolvedTier: CategoryTier = tier === 2 || !!parentId ? 2 : 1;
+    const parentCat = parentId ? tagMap[parentId] : undefined;
+    const resolvedGroupId =
+      groupId || parentCat?.groupId || `GRP-${groupType || 'GENERAL'}`;
 
     const newTag: CategoryTag = {
       id: generateNextId('TAG', tags.map((t) => t.id)),
       name: trimmed,
       color,
       groupType,
-      groupId: groupId || (tier === 1 ? `GRP-${groupType}` : undefined),
+      groupId: resolvedGroupId,
       description,
       createdAt: getReferenceTodayDate(),
-      tier,
-      parentId,
-      entityType: entityType || (parentId ? 'PERSON' : undefined),
+      tier: resolvedTier,
+      parentId: resolvedTier === 2 ? parentId : null,
+      ...(resolvedTier === 2 ? { entityType: entityType || 'PERSON' } : {}),
     };
     setTags((prev) => {
       const next = [...prev, newTag];
       cmsRepository.saveTags(next);
       return next;
     });
-    firestoreService.saveCategory(newTag).catch((err) => console.warn('Firestore saveCategory error:', err));
+    firestoreService
+      .saveCategory(newTag)
+      .catch((err) => console.warn('Firestore saveCategory error:', err));
     return newTag;
   };
 
@@ -177,40 +187,74 @@ export function useCMSCategoryActions({
 
   const updateTag = (id: string, updates: Partial<Omit<CategoryTag, 'id'>>) => {
     setTags((prev) => {
-      const next = prev.map((t) => {
-        if (t.id === id) {
-          const updated = { ...t, ...updates };
-          firestoreService.saveCategory(updated).catch((err) => console.warn('Firestore updateTag error:', err));
-          return updated;
-        }
-        return t;
-      });
+      const target = prev.find((t) => t.id === id);
+      if (!target) return prev;
+
+      const resolvedTier: CategoryTier =
+        updates.tier ?? target.tier ?? (updates.parentId || target.parentId ? 2 : 1);
+      const resolvedParentId =
+        resolvedTier === 2 ? (updates.parentId !== undefined ? updates.parentId : target.parentId || null) : null;
+      const parentCat = resolvedParentId ? prev.find((p) => p.id === resolvedParentId) : undefined;
+      const resolvedGroupId =
+        updates.groupId || target.groupId || parentCat?.groupId || `GRP-${target.groupType || 'GENERAL'}`;
+
+      const updated: CategoryTag = {
+        ...target,
+        ...updates,
+        tier: resolvedTier,
+        parentId: resolvedParentId,
+        groupId: resolvedGroupId,
+      };
+
+      const next = prev.map((t) => (t.id === id ? updated : t));
       cmsRepository.saveTags(next);
+
+      // Save parent category as well if updating a subcategory so parent is guaranteed in Firestore
+      if (parentCat) {
+        firestoreService
+          .saveCategory(parentCat)
+          .catch((err) => console.warn('Firestore save parent category error:', err));
+      }
+      firestoreService
+        .saveCategory(updated)
+        .catch((err) => console.warn('Firestore updateTag error:', err));
+
       return next;
     });
   };
 
   const deleteTag = (id: string) => {
+    if (isStagingTagId(id)) return;
+    const removedIds: string[] = [id];
     setTags((prev) => {
-      // Also delete subcategories if this was a parent category
+      prev.forEach((t) => {
+        if (t.parentId === id && !removedIds.includes(t.id)) {
+          removedIds.push(t.id);
+        }
+      });
+      cmsRepository.markTagIdsDeleted(removedIds);
       const next = prev.filter((t) => t.id !== id && t.parentId !== id);
       cmsRepository.saveTags(next);
       return next;
     });
-    firestoreService.deleteCategory(id).catch((err) => console.warn('Firestore deleteTag error:', err));
+    removedIds.forEach((rid) => {
+      firestoreService
+        .deleteCategory(rid)
+        .catch((err) => console.warn('Firestore deleteTag error:', err));
+    });
     setFootage((prev) =>
       prev.map((ft) => ({
         ...ft,
-        tags: ft.tags.filter((tid) => tid !== id),
+        tags: normalizeFootageTags(ft.tags.filter((tid) => !removedIds.includes(tid))),
       }))
     );
     setSources((prev) =>
       prev.map((src) => ({
         ...src,
-        tags: src.tags.filter((tid) => tid !== id),
+        tags: src.tags.filter((tid) => !removedIds.includes(tid)),
       }))
     );
-    setSelectedTagFilter((prev) => prev.filter((tid) => tid !== id));
+    setSelectedTagFilter((prev) => prev.filter((tid) => !removedIds.includes(tid)));
   };
 
   const updateSettings = (updates: Partial<SystemSettings>) => {

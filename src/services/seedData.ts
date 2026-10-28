@@ -15,7 +15,59 @@ export const INITIAL_SETTINGS: SystemSettings = {
   driveRootFolderUrl: 'https://drive.google.com/drive/folders/riang-rueang-lan-vault',
 };
 
+export const STAGING_GROUP_ID = 'GRP-STAGING';
+export const STAGING_TAG_ID = 'TAG-STAGING';
+
+export const STAGING_CATEGORY_GROUP: CategoryGroup = {
+  id: STAGING_GROUP_ID,
+  name: 'พื้นที่พักรอจัดหมวดหมู่',
+  icon: '📥',
+  color: 'amber',
+  description: 'พื้นที่พักฟุตเทจที่บันทึกด่วน รอคัดแยกเข้าหมวดหมู่จริงภายหลัง (ไม่นับโควตา 5 ฟุต = 1 EP)',
+  order: 0,
+  createdAt: '2025-01-01',
+};
+
+export const STAGING_CATEGORY_TAG: CategoryTag = {
+  id: STAGING_TAG_ID,
+  name: 'พื้นที่พักรอจัดหมวดหมู่',
+  color: 'amber',
+  groupType: 'STAGING',
+  groupId: STAGING_GROUP_ID,
+  description:
+    'หมวดหมู่พักฟุตเทจชั่วคราวสำหรับคลิปที่เพิ่งเก็บมาใหม่และยังไม่ได้ระบุหมวดหมู่จริง (ไม่นับรวมโควตา 5 ฟุต = 1 EP)',
+  createdAt: '2025-01-01',
+  tier: 1,
+  parentId: null,
+};
+
+export function isStagingTagId(tagId: string | undefined | null): boolean {
+  return tagId === STAGING_TAG_ID || tagId === 'cat_staging';
+}
+
+export function isStagingGroupId(groupId: string | undefined | null): boolean {
+  return groupId === STAGING_GROUP_ID;
+}
+
+export function isFootageInStaging(tags: string[] | undefined | null): boolean {
+  if (!tags || tags.length === 0) return true;
+  const realTags = tags.filter((tid) => Boolean(tid) && !isStagingTagId(tid));
+  return realTags.length === 0;
+}
+
+export function normalizeFootageTags(tags: string[] | undefined | null): string[] {
+  if (!tags || tags.length === 0) return [STAGING_TAG_ID];
+  const realTags = Array.from(
+    new Set(tags.filter((tid) => Boolean(tid) && !isStagingTagId(tid)))
+  );
+  if (realTags.length > 0) {
+    return realTags;
+  }
+  return [STAGING_TAG_ID];
+}
+
 export const INITIAL_CATEGORY_GROUPS: CategoryGroup[] = [
+  STAGING_CATEGORY_GROUP,
   {
     id: 'GRP-PERSON',
     name: 'คนมีชื่อเสียง',
@@ -55,6 +107,9 @@ export const INITIAL_CATEGORY_GROUPS: CategoryGroup[] = [
 ];
 
 export const INITIAL_TAGS: CategoryTag[] = [
+  // --- SYSTEM STAGING CATEGORY (พื้นที่พักรอจัดหมวดหมู่) ---
+  STAGING_CATEGORY_TAG,
+
   // --- TIER 1: Main Categories (หมวดหมู่หลัก) ---
   {
     id: 'TAG-0004',
