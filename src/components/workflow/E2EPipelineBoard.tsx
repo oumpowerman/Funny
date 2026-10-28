@@ -3,11 +3,32 @@ import { AnimatePresence, motion } from 'motion/react';
 import {
   AlertTriangle,
   ArrowRight,
+  Calendar,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Eye,
+  Film,
   FolderOpen,
+  Layers,
+  Lightbulb,
+  Moon,
+  Package,
+  PawPrint,
+  Plus,
+  Repeat,
   Rocket,
+  Scissors,
   Sparkles,
+  Sun,
+  Tag,
+  Target,
+  Trophy,
+  User,
+  Video,
+  Wrench,
+  Zap,
 } from 'lucide-react';
 import { CategoryMatrixStat, useCMS } from '../../context/CMSContext';
 import { EpisodeWorkflowStage } from '../../types/episode.types';
@@ -23,10 +44,10 @@ const NEXT_STAGE_MAP: Partial<Record<EpisodeWorkflowStage, EpisodeWorkflowStage>
 };
 
 const STAGE_BADGE_LABELS: Record<EpisodeWorkflowStage, string> = {
-  '1_MIXING': '🎛️ 1. เลือกผสม 5 ฟุต',
-  '2_MASCOT_SCRIPTING': '🎙️ 2. เขียนบทมาสคอต',
-  '3_VIDEO_EDITING': '🎬 3. ตัดต่อรวม 5 ฟุต',
-  '4_PUBLISHED': '✅ 4. โพสต์ลงช่องแล้ว',
+  '1_MIXING': '1. เลือกผสม 5 ฟุต',
+  '2_MASCOT_SCRIPTING': '2. เขียนบทมาสคอต',
+  '3_VIDEO_EDITING': '3. ตัดต่อรวม 5 ฟุต',
+  '4_PUBLISHED': '4. โพสต์ลงช่องแล้ว',
 };
 
 type Col1ReadinessFilter =
@@ -180,11 +201,12 @@ export const E2EPipelineBoard: React.FC = () => {
       <div className="studio-card border border-slate-200/90 rounded-2xl p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-lg font-extrabold text-slate-900">
-              ⚡ กระดานสายพานการผลิต End-to-End (คำนวณโควตา 5 ฟุตต่อหมวด = 1 EP)
+            <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-500" />
+              <span>กระดานสายพานการผลิต End-to-End (คำนวณโควตา 5 ฟุตต่อหมวด = 1 EP)</span>
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              แยกนับเฉพาะฟุตที่ไม่ติด Cooldown (🔵 ใหม่แกะกล่อง + 🟢 พักจนสด) ในหมวดหมู่เดียวกัน เพื่อให้รู้ทันทีว่าหมวดไหนทำคลิปได้จริงกี่ EP
+              แยกนับเฉพาะฟุตที่ไม่ติด Cooldown (ฟุตใหม่แกะกล่อง + พักจนสด) ในหมวดหมู่เดียวกัน เพื่อให้รู้ทันทีว่าหมวดไหนทำคลิปได้จริงกี่ EP
             </p>
           </div>
 
@@ -209,7 +231,7 @@ export const E2EPipelineBoard: React.FC = () => {
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
                 <span>
-                  ⚠️ ฟุตยังไม่ติดแท็ก {untaggedFootages.length} · รอลิงก์ Drive{' '}
+                  ฟุตยังไม่ติดแท็ก {untaggedFootages.length} · รอลิงก์ Drive{' '}
                   {missingDriveFootages.length}
                 </span>
               </motion.button>
@@ -220,9 +242,10 @@ export const E2EPipelineBoard: React.FC = () => {
               whileHover={{ y: -2, scale: 1.02 }}
               whileTap={{ scale: 0.96 }}
               onClick={() => setActiveTab('EPISODE_BUILDER')}
-              className="px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm whitespace-nowrap"
             >
-              🏆 + สร้างคิว 5 อันดับใหม่
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span>+ สร้างคิว 5 อันดับใหม่</span>
             </motion.button>
           </div>
         </div>
@@ -231,50 +254,54 @@ export const E2EPipelineBoard: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
           <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-emerald-800">
-                ✅ หมวดที่ครบโควตา (≥5 ฟุต)
+              <div className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>หมวดที่ครบโควตา (≥5 ฟุต)</span>
               </div>
               <div className="text-base font-extrabold font-mono text-emerald-950">
                 {readyCategoriesCount} / {categoryMatrix.length} หมวด
               </div>
             </div>
-            <span className="text-xl">🏷️</span>
+            <Tag className="w-5 h-5 text-emerald-600" />
           </div>
 
           <div className="bg-sky-50/70 border border-sky-200/80 rounded-xl p-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-sky-800">
-                🎬 ผลิตคลิป 5 อันดับได้ทันที
+              <div className="text-[11px] font-semibold text-sky-800 flex items-center gap-1">
+                <Film className="w-3.5 h-3.5 text-sky-600" />
+                <span>ผลิตคลิป 5 อันดับได้ทันที</span>
               </div>
               <div className="text-base font-extrabold font-mono text-sky-950">
                 รวม {totalProducibleEpisodes} EP
               </div>
             </div>
-            <span className="text-xl">🚀</span>
+            <Rocket className="w-5 h-5 text-sky-600" />
           </div>
 
           <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-amber-800">
-                ⏳ กำลังตัดต่ออยู่ในสายพาน
+              <div className="text-[11px] font-semibold text-amber-800 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span>กำลังตัดต่ออยู่ในสายพาน</span>
               </div>
               <div className="text-base font-extrabold font-mono text-amber-950">
                 {inProductionEpisodes.length} คิว
               </div>
             </div>
-            <span className="text-xl">🎞️</span>
+            <Film className="w-5 h-5 text-amber-600" />
           </div>
 
           <div className="bg-rose-50/60 border border-rose-200/80 rounded-xl p-3 flex items-center justify-between">
             <div>
-              <div className="text-[11px] font-semibold text-rose-800">
-                ⚠️ ฟุตยังไม่ติดหมวด / ขาด Drive
+              <div className="text-[11px] font-semibold text-rose-800 flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                <span>ฟุตยังไม่ติดหมวด / ขาด Drive</span>
               </div>
               <div className="text-base font-extrabold font-mono text-rose-950">
                 {untaggedFootages.length} แท็กว่าง · {missingDriveFootages.length} ขาดลิงก์
               </div>
             </div>
-            <span className="text-xl">🛠️</span>
+            <Wrench className="w-5 h-5 text-rose-600" />
           </div>
         </div>
       </div>
@@ -285,15 +312,16 @@ export const E2EPipelineBoard: React.FC = () => {
         <div className="studio-card border border-slate-200/90 rounded-2xl p-4 space-y-3.5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm font-extrabold text-slate-900">
-                1️⃣ วัตถุดิบพร้อมใช้ แยกตามหมวดหมู่
+              <h2 className="text-sm font-bold text-slate-900">
+                1. วัตถุดิบพร้อมใช้ แยกตามหมวดหมู่
               </h2>
               <p className="text-[11px] text-slate-500">
                 ต้องมีฟุตพร้อมใช้ในหมวดเดียวกันครบ 5 ฟุต = ทำได้ 1 คลิป
               </p>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-mono font-extrabold whitespace-nowrap">
-              🎬 ทำได้ {totalProducibleEpisodes} EP
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-900 text-xs font-mono font-bold whitespace-nowrap">
+              <Film className="w-3 h-3 text-emerald-700" />
+              <span>ทำได้ {totalProducibleEpisodes} EP</span>
             </span>
           </div>
 
@@ -302,32 +330,32 @@ export const E2EPipelineBoard: React.FC = () => {
             <div className="flex flex-wrap gap-1">
               {(
                 [
-                  { id: 'ALL_CATEGORIES', label: `🏷️ ทุกหมวด (${categoryMatrix.length})` },
+                  { id: 'ALL_CATEGORIES', label: `ทุกหมวด (${categoryMatrix.length})` },
                   {
                     id: 'READY_5_PLUS',
-                    label: `✅ พร้อมทำคลิป ≥5 ฟุต (${readyCategoriesCount})`,
+                    label: `พร้อมทำคลิป ≥5 ฟุต (${readyCategoriesCount})`,
                   },
                   {
                     id: 'RECIPE_ALL_NEW',
-                    label: `🆕 ฟุตใหม่ล้วน 5:0 (${
+                    label: `ฟุตใหม่ล้วน 5:0 (${
                       categoryMatrix.filter((c) => c.canMakeAllNew5).length
                     })`,
                   },
                   {
                     id: 'RECIPE_SMART_MIX',
-                    label: `♻️ สูตร 2ใหม่+3เก่า (${
+                    label: `สูตร 2ใหม่+3เก่า (${
                       categoryMatrix.filter((c) => c.canMakeMix2New3Fresh).length
                     })`,
                   },
                   {
                     id: 'ACCUMULATING_UNDER_5',
-                    label: `⏳ กำลังสะสม <5 ฟุต (${
+                    label: `กำลังสะสม <5 ฟุต (${
                       categoryMatrix.filter((c) => c.usableCount < 5).length
                     })`,
                   },
                   {
                     id: 'INCOMPLETE_FOOTAGE',
-                    label: `⚠️ ยังไม่ติดแท็ก/ขาด Drive (${incompleteFootages.length})`,
+                    label: `ยังไม่ติดแท็ก/ขาด Drive (${incompleteFootages.length})`,
                   },
                 ] as const
               ).map((tab) => (
@@ -355,9 +383,9 @@ export const E2EPipelineBoard: React.FC = () => {
                 onChange={(e) => setFootageSortMode(e.target.value as FootageSortMode)}
                 className="px-2 py-1 text-[11px] font-semibold bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none cursor-pointer"
               >
-                <option value="REST_DAYS_DESC">⏱️ พักนานสุดขึ้นก่อน (แนะนำรีไซเคิล)</option>
-                <option value="USAGE_90D_ASC">📉 ใช้ในรอบ 90 วันน้อยสุด</option>
-                <option value="NEWEST_FIRST">🆕 เพิ่งนำเข้าคลังล่าสุด</option>
+                <option value="REST_DAYS_DESC">พักนานสุดขึ้นก่อน (แนะนำรีไซเคิล)</option>
+                <option value="USAGE_90D_ASC">ใช้ในรอบ 90 วันน้อยสุด</option>
+                <option value="NEWEST_FIRST">เพิ่งนำเข้าคลังล่าสุด</option>
               </select>
             </div>
           </div>
@@ -366,8 +394,9 @@ export const E2EPipelineBoard: React.FC = () => {
           {col1Filter === 'INCOMPLETE_FOOTAGE' ? (
             <div className="space-y-2.5">
               <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 space-y-1">
-                <div className="font-bold">
-                  ⚠️ ฟุตเทจที่ยังนำไปจัดหมวดหมู่ทำคลิปไม่ได้ ({incompleteFootages.length} รายการ)
+                <div className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                  <span>ฟุตเทจที่ยังนำไปจัดหมวดหมู่ทำคลิปไม่ได้ ({incompleteFootages.length} รายการ)</span>
                 </div>
                 <p className="text-[11px] text-rose-700">
                   คลิกที่การ์ดเพื่อเปิดหน้าต่างติดป้ายหมวดหมู่ (Tag) หรือวางลิงก์ไฟล์ Google Drive ให้ครบ
@@ -375,8 +404,9 @@ export const E2EPipelineBoard: React.FC = () => {
               </div>
 
               {paginatedIncompleteFootages.length === 0 ? (
-                <div className="p-6 text-center bg-white border border-slate-200 rounded-xl text-xs text-emerald-700 font-bold">
-                  ✅ ฟุตเทจทุกชิ้นติดป้ายหมวดหมู่และมีลิงก์ Google Drive ครบถ้วนแล้ว!
+                <div className="p-6 text-center bg-white border border-slate-200 rounded-xl text-xs text-emerald-700 font-bold flex items-center justify-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>ฟุตเทจทุกชิ้นติดป้ายหมวดหมู่และมีลิงก์ Google Drive ครบถ้วนแล้ว</span>
                 </div>
               ) : (
                 paginatedIncompleteFootages.map((ft) => {
@@ -393,13 +423,15 @@ export const E2EPipelineBoard: React.FC = () => {
                         <span className="font-bold text-slate-900">{ft.id}</span>
                         <div className="flex items-center gap-1">
                           {isUntagged && (
-                            <span className="px-2 py-0.5 text-[10px] font-sans font-bold bg-rose-100 text-rose-800 rounded-md">
-                              ⚠️ ยังไม่ติดหมวดหมู่
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-sans font-bold bg-rose-100 text-rose-800 rounded-md">
+                              <AlertTriangle className="w-3 h-3 text-rose-600" />
+                              <span>ยังไม่ติดหมวดหมู่</span>
                             </span>
                           )}
                           {isMissingDrive && (
-                            <span className="px-2 py-0.5 text-[10px] font-sans font-bold bg-amber-100 text-amber-800 rounded-md">
-                              📂 รอลิงก์ Drive
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-sans font-bold bg-amber-100 text-amber-800 rounded-md">
+                              <FolderOpen className="w-3 h-3 text-amber-700" />
+                              <span>รอลิงก์ Drive</span>
                             </span>
                           )}
                         </div>
@@ -407,8 +439,9 @@ export const E2EPipelineBoard: React.FC = () => {
                       <div className="text-xs font-bold text-slate-900 line-clamp-1">
                         {ft.title}
                       </div>
-                      <div className="text-[11px] text-indigo-700 font-semibold">
-                        👉 คลิกเพื่อติดป้ายหมวดหมู่ / อัปเดตลิงก์ Drive ทันที
+                      <div className="text-[11px] text-indigo-700 font-semibold flex items-center gap-1">
+                        <ArrowRight className="w-3 h-3" />
+                        <span>คลิกเพื่อติดป้ายหมวดหมู่ / อัปเดตลิงก์ Drive ทันที</span>
                       </div>
                     </motion.div>
                   );
@@ -478,7 +511,7 @@ export const E2EPipelineBoard: React.FC = () => {
                           </div>
                           <div className="text-[11px] font-mono text-slate-600 mt-0.5">
                             พร้อมใช้ <strong className="text-slate-900">{stat.usableCount}</strong> ฟุต
-                            (🔵 ใหม่ {stat.newCount} · 🟢 เก่าสด {stat.readyCount})
+                            (ใหม่ {stat.newCount} · สด {stat.readyCount})
                             {stat.cooldownCount + stat.frequentCount > 0 && (
                               <span className="text-slate-400">
                                 {' '}
@@ -489,12 +522,14 @@ export const E2EPipelineBoard: React.FC = () => {
                         </div>
 
                         {isReadyForEp ? (
-                          <span className="px-2.5 py-1 rounded-xl bg-emerald-600 text-white text-xs font-extrabold font-mono whitespace-nowrap shadow-2xs">
-                            🎬 ทำได้ {stat.producibleEpisodesCount} EP
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-600 text-white text-xs font-bold font-mono whitespace-nowrap shadow-2xs">
+                            <Film className="w-3 h-3" />
+                            <span>ทำได้ {stat.producibleEpisodesCount} EP</span>
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold font-mono whitespace-nowrap">
-                            ⏳ ขาดอีก {5 - stat.usableCount} ฟุตครบ 1 EP
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold font-mono whitespace-nowrap">
+                            <Clock className="w-3 h-3 text-amber-700" />
+                            <span>ขาดอีก {5 - stat.usableCount} ฟุต</span>
                           </span>
                         )}
                       </div>
@@ -538,18 +573,20 @@ export const E2EPipelineBoard: React.FC = () => {
                       <div className="flex flex-wrap items-center gap-1.5">
                         {stat.canMakeAllNew5 && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-sky-100 text-sky-900 rounded-md">
-                            <Sparkles className="w-3 h-3" />
+                            <Sparkles className="w-3 h-3 text-sky-700" />
                             <span>ทำฟุตใหม่ล้วน 5:0 ได้ ({stat.allNewEpisodesCount} EP)</span>
                           </span>
                         )}
                         {stat.canMakeMix2New3Fresh && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-900 rounded-md">
-                            ♻️ ผสมสูตร 2 ใหม่ + 3 เก่าสดได้ทันที
+                            <Repeat className="w-3 h-3 text-emerald-700" />
+                            <span>ผสมสูตร 2 ใหม่ + 3 เก่าสดได้ทันที</span>
                           </span>
                         )}
                         {!isReadyForEp && (
-                          <span className="text-[10px] text-amber-800 font-medium">
-                            💡 หั่นไลฟ์หรือเพิ่มฟุตเดี่ยวหมวดนี้อีก {5 - stat.usableCount} ช็อตเพื่อเปิดโปรเจกต์
+                          <span className="text-[10px] text-amber-800 font-medium inline-flex items-center gap-1">
+                            <Lightbulb className="w-3 h-3 text-amber-600" />
+                            <span>หั่นไลฟ์หรือเพิ่มฟุตเดี่ยวหมวดนี้อีก {5 - stat.usableCount} ช็อตเพื่อเปิดโปรเจกต์</span>
                           </span>
                         )}
                       </div>
@@ -558,12 +595,14 @@ export const E2EPipelineBoard: React.FC = () => {
                       {stat.subcategoriesCount > 0 && (
                         <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 space-y-1.5 text-[11px]">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-800 flex items-center gap-1">
-                              <span>📂</span> มี {stat.subcategoriesCount} หัวข้อย่อย
+                            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                              <FolderOpen className="w-3.5 h-3.5 text-slate-500" />
+                              <span>มี {stat.subcategoriesCount} หัวข้อย่อย</span>
                             </span>
                             {stat.specialEpisodeSubcategories.length > 0 ? (
-                              <span className="text-[10px] font-extrabold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md">
-                                🌟 พร้อมทำ Solo / Topic Special EP: {stat.specialEpisodeSubcategories.map((s) => `${s.subcategory.name} (${s.count} ฟุต)`).join(', ')}
+                              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-amber-600" />
+                                <span>พร้อมทำ Special EP: {stat.specialEpisodeSubcategories.map((s) => `${s.subcategory.name} (${s.count} ฟุต)`).join(', ')}</span>
                               </span>
                             ) : (
                               <span className="text-[10px] text-slate-500">
@@ -582,7 +621,13 @@ export const E2EPipelineBoard: React.FC = () => {
                                     : 'bg-white text-slate-700 border border-slate-200'
                                 }`}
                               >
-                                <span>{subStat.subcategory.entityType === 'PERSON' ? '👤' : subStat.subcategory.entityType === 'ANIMAL' ? '🐾' : '🎯'}</span>
+                                {subStat.subcategory.entityType === 'PERSON' ? (
+                                  <User className="w-3 h-3 text-indigo-600" />
+                                ) : subStat.subcategory.entityType === 'ANIMAL' ? (
+                                  <PawPrint className="w-3 h-3 text-emerald-600" />
+                                ) : (
+                                  <Target className="w-3 h-3 text-rose-600" />
+                                )}
                                 <span>{subStat.subcategory.name}:</span>
                                 <strong>{subStat.usableCount}</strong>
                               </span>
@@ -674,14 +719,23 @@ export const E2EPipelineBoard: React.FC = () => {
                                       <span className="font-bold text-slate-900">
                                         {ft.id}
                                       </span>
-                                      <span className="text-slate-400">
-                                        {ft.ingestionFlow === 'DIRECT_1_TO_1'
-                                          ? '📹 1:1'
-                                          : `✂️ ${ft.sourceId}`}
+                                      <span className="text-slate-400 inline-flex items-center gap-1">
+                                        {ft.ingestionFlow === 'DIRECT_1_TO_1' ? (
+                                          <>
+                                            <Video className="w-3 h-3 text-slate-400" />
+                                            <span>1:1</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Scissors className="w-3 h-3 text-indigo-500" />
+                                            <span>{ft.sourceId}</span>
+                                          </>
+                                        )}
                                       </span>
                                       {!hasRealDriveLink(ft.driveFileUrl) && (
-                                        <span className="px-1.5 py-0.5 text-[10px] font-sans font-bold bg-amber-100 text-amber-800 rounded">
-                                          📂 รอลิงก์ Drive
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-sans font-bold bg-amber-100 text-amber-800 rounded">
+                                          <FolderOpen className="w-3 h-3 text-amber-700" />
+                                          <span>รอลิงก์ Drive</span>
                                         </span>
                                       )}
                                     </div>
@@ -696,12 +750,16 @@ export const E2EPipelineBoard: React.FC = () => {
                                   <div className="text-xs font-bold text-slate-900 line-clamp-1">
                                     {ft.title}
                                   </div>
-                                  <div className="text-[11px] font-mono text-slate-500">
-                                    🔄 รวม {ft.totalUsageCount}x · 🗓️ 90วัน{' '}
-                                    {ft.usageLast90Days}x · ⏳{' '}
-                                    {ft.daysSinceLastUsed !== null
-                                      ? `พัก ${ft.daysSinceLastUsed} วัน`
-                                      : 'ยังไม่เคยใช้'}
+                                  <div className="text-[11px] font-mono text-slate-500 flex flex-wrap items-center gap-2">
+                                    <span>รวม {ft.totalUsageCount}x</span>
+                                    <span>·</span>
+                                    <span>90วัน {ft.usageLast90Days}x</span>
+                                    <span>·</span>
+                                    <span>
+                                      {ft.daysSinceLastUsed !== null
+                                        ? `พัก ${ft.daysSinceLastUsed} วัน`
+                                        : 'ยังไม่เคยใช้'}
+                                    </span>
                                   </div>
                                 </div>
                               ))}
@@ -748,22 +806,24 @@ export const E2EPipelineBoard: React.FC = () => {
         <div className="studio-card border border-slate-200/90 rounded-2xl p-4 space-y-3.5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm font-extrabold text-slate-900">
-                2️⃣ กำลังผสม 5 ฟุต & ตัดต่อ
+              <h2 className="text-sm font-bold text-slate-900">
+                2. กำลังผสม 5 ฟุต & ตัดต่อ
               </h2>
               <p className="text-[11px] text-slate-500">
                 โปรเจกต์ที่เลือกฟุตครบ 5 อันดับแล้วและกำลังพากย์/ตัดต่อ
               </p>
             </div>
-            <span className="text-xs font-mono tabular-nums font-bold text-amber-700">
-              🎬 {inProductionEpisodes.length} คิว
+            <span className="inline-flex items-center gap-1 text-xs font-mono tabular-nums font-bold text-amber-700">
+              <Film className="w-3.5 h-3.5" />
+              <span>{inProductionEpisodes.length} คิว</span>
             </span>
           </div>
 
           {inProductionEpisodes.length === 0 ? (
             <div className="bg-white border border-slate-200/80 rounded-xl p-6 text-center space-y-3">
-              <p className="text-xs font-semibold text-slate-600">
-                ✅ ทุกคิวตัดต่อเสร็จและโพสต์แล้ว
+              <p className="text-xs font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>ทุกคิวตัดต่อเสร็จและโพสต์แล้ว</span>
               </p>
               <p className="text-[11px] text-slate-500">
                 สามารถกดปุ่ม &ldquo;จัด 5 อันดับหมวดนี้&rdquo; จากคอลัมน์ซ้ายมือเพื่อส่งวัตถุดิบเข้าสายพานตัดต่อได้ทันที
@@ -773,9 +833,10 @@ export const E2EPipelineBoard: React.FC = () => {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => setActiveTab('EPISODE_BUILDER')}
-                className="px-4 py-2 text-xs font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 cursor-pointer"
               >
-                🏆 + จัดชุด 5 อันดับใหม่
+                <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                <span>+ จัดชุด 5 อันดับใหม่</span>
               </motion.button>
             </div>
           ) : (
@@ -803,9 +864,25 @@ export const E2EPipelineBoard: React.FC = () => {
                       {ep.title}
                     </div>
 
-                    <div className="text-xs font-mono text-slate-500">
-                      📅 {formatThaiDate(ep.publishDate)} ·{' '}
-                      {ep.publishSlot === 'MORNING_0600' ? '🌅 06:00' : '🌆 18:00'}
+                    <div className="text-xs font-mono text-slate-500 flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        <span>{formatThaiDate(ep.publishDate)}</span>
+                      </span>
+                      <span>·</span>
+                      <span className="inline-flex items-center gap-1">
+                        {ep.publishSlot === 'MORNING_0600' ? (
+                          <>
+                            <Sun className="w-3 h-3 text-amber-500" />
+                            <span>06:00</span>
+                          </>
+                        ) : (
+                          <>
+                            <Moon className="w-3 h-3 text-indigo-500" />
+                            <span>18:00</span>
+                          </>
+                        )}
+                      </span>
                     </div>
 
                     <div className="flex flex-wrap gap-1">
@@ -824,7 +901,7 @@ export const E2EPipelineBoard: React.FC = () => {
                         type="button"
                         whileTap={{ scale: 0.96 }}
                         onClick={() => updateEpisodeWorkflowStage(ep.id, nextStage)}
-                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors"
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                       >
                         <span>ไปขั้น {STAGE_BADGE_LABELS[nextStage]}</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -852,15 +929,16 @@ export const E2EPipelineBoard: React.FC = () => {
         <div className="studio-card border border-slate-200/90 rounded-2xl p-4 space-y-3.5">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
-              <h2 className="text-sm font-extrabold text-slate-900">
-                3️⃣ คลังคลิปหลักที่โพสต์แล้ว
+              <h2 className="text-sm font-bold text-slate-900">
+                3. คลังคลิปหลักที่โพสต์แล้ว
               </h2>
               <p className="text-[11px] text-slate-500">
                 ฟุตเทจทั้ง 5 ในคลิปจะถูกตัดรอบ Cooldown อัตโนมัติ
               </p>
             </div>
-            <span className="text-xs font-mono tabular-nums font-bold text-emerald-700">
-              📦 {publishedEpisodes.length} EP
+            <span className="inline-flex items-center gap-1 text-xs font-mono tabular-nums font-bold text-emerald-700">
+              <Package className="w-3.5 h-3.5" />
+              <span>{publishedEpisodes.length} EP</span>
             </span>
           </div>
 
@@ -874,8 +952,9 @@ export const E2EPipelineBoard: React.FC = () => {
               >
                 <div className="flex items-center justify-between text-xs font-mono">
                   <span className="font-bold text-slate-900">{ep.id}</span>
-                  <span className="text-emerald-700 font-bold tabular-nums">
-                    👁️ {ep.masterVideoInfo.viewsCount.toLocaleString()}
+                  <span className="text-emerald-700 font-bold tabular-nums inline-flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>{ep.masterVideoInfo.viewsCount.toLocaleString()}</span>
                   </span>
                 </div>
 

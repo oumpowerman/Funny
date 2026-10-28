@@ -309,7 +309,7 @@ export const DirectFootageModal: React.FC = () => {
 
             {isInStaging ? (
               <span className="text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 px-3 py-1 rounded-lg">
-                📥 ค่าเริ่มต้น: พื้นที่พักรอจัดหมวดหมู่ (ยังไม่เลือกแท็กจริง)
+                ค่าเริ่มต้น: พื้นที่พักรอจัดหมวดหมู่ (ยังไม่เลือกแท็กจริง)
               </span>
             ) : (
               <span className="text-xs font-mono tabular-nums font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg">

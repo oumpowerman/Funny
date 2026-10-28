@@ -1,14 +1,21 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import {
+  AlertTriangle,
   ArrowRight,
   ArrowUpDown,
+  CheckCircle2,
   ChevronLeft,
+  Clapperboard,
+  Clock,
   FolderOpen,
   Plus,
   Rocket,
   Search,
+  Sparkles,
+  Trophy,
   X,
+  Zap,
 } from 'lucide-react';
 import { CategoryMatrixStat } from '../../../context/CMSContext';
 import { CategoryTag } from '../../../types/tag.types';
@@ -92,7 +99,8 @@ export const DashboardStep3CategoryAssembly: React.FC<
           </span>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>🏆 สเต็ปที่ 3: ชี้เป้าหมวด & จัดคลิป 5 อันดับพร้อมผลิต</span>
+              <Trophy className="w-4 h-4 text-amber-500" />
+              <span>สเต็ปที่ 3: ชี้เป้าหมวด & จัดคลิป 5 อันดับพร้อมผลิต</span>
             </h2>
             <p className="text-xs text-slate-500">
               เลือกหมวดหมู่ที่มีฟุตเทจพร้อมใช้ครบ 5 ฟุต แล้วกดส่งเข้าห้องจัดอันดับได้ทันที
@@ -141,11 +149,11 @@ export const DashboardStep3CategoryAssembly: React.FC<
               { id: 'ALL', label: `ทั้งหมด (${categoryMatrix.length})` },
               {
                 id: 'READY_EP',
-                label: `🎬 พร้อมทำ EP (${productionRadar.readyCategories.length})`,
+                label: `พร้อมทำ EP (${productionRadar.readyCategories.length})`,
               },
               {
                 id: 'ALMOST_READY',
-                label: `⏳ ใกล้ครบ 5 ฟุต (${productionRadar.almostReadyCategories.length})`,
+                label: `ใกล้ครบ 5 ฟุต (${productionRadar.almostReadyCategories.length})`,
               },
               { id: 'TIER_1', label: 'หมวดหลัก (Tier 1)' },
               { id: 'TIER_2', label: 'หมวดย่อย (Tier 2)' },
@@ -155,7 +163,7 @@ export const DashboardStep3CategoryAssembly: React.FC<
               key={tab.id}
               type="button"
               onClick={() => setCategoryFilterMode(tab.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
                 categoryFilterMode === tab.id
                   ? 'bg-white text-indigo-950 shadow-2xs'
                   : 'text-slate-600 hover:text-slate-900'
@@ -259,12 +267,14 @@ export const DashboardStep3CategoryAssembly: React.FC<
                       {parentTag ? ` · ↳ ${parentTag.name}` : ''}
                     </span>
                     {stat.producibleEpisodesCount > 0 ? (
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold shrink-0">
-                        🎬 ทำได้ {stat.producibleEpisodesCount} EP
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold shrink-0">
+                        <Clapperboard className="w-3 h-3" />
+                        <span>ทำได้ {stat.producibleEpisodesCount} EP</span>
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold shrink-0">
-                        ⏳ มี {availableToUse}/5 ฟุต
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold shrink-0">
+                        <Clock className="w-3 h-3 text-amber-700" />
+                        <span>มี {availableToUse}/5 ฟุต</span>
                       </span>
                     )}
                   </div>
@@ -297,20 +307,20 @@ export const DashboardStep3CategoryAssembly: React.FC<
 
                 {/* 4-Color Status Counts */}
                 <div className="grid grid-cols-4 gap-1 text-center font-mono tabular-nums text-xs bg-slate-100/80 p-1.5 rounded-xl border border-slate-200/60">
-                  <div title="ฟ้า ใหม่">
-                    <div className="text-[10px]">🔵</div>
+                  <div title="ฟ้า ใหม่" className="flex flex-col items-center">
+                    <Sparkles className="w-3 h-3 text-sky-600 mb-0.5" />
                     <div className="font-bold text-sky-700">{stat.newCount}</div>
                   </div>
-                  <div title="เขียว สด">
-                    <div className="text-[10px]">🟢</div>
+                  <div title="เขียว สด" className="flex flex-col items-center">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600 mb-0.5" />
                     <div className="font-bold text-emerald-700">{stat.readyCount}</div>
                   </div>
-                  <div title="เหลือง ถี่">
-                    <div className="text-[10px]">🟡</div>
+                  <div title="เหลือง ถี่" className="flex flex-col items-center">
+                    <AlertTriangle className="w-3 h-3 text-amber-600 mb-0.5" />
                     <div className="font-bold text-amber-700">{stat.frequentCount}</div>
                   </div>
-                  <div title="แดง พัก">
-                    <div className="text-[10px]">🔴</div>
+                  <div title="แดง พัก" className="flex flex-col items-center">
+                    <Clock className="w-3 h-3 text-rose-600 mb-0.5" />
                     <div className="font-bold text-rose-700">{stat.cooldownCount}</div>
                   </div>
                 </div>

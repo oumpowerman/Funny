@@ -48,7 +48,7 @@ export const ClearAllClipsModal: React.FC = () => {
     <Modal
       isOpen={isClearClipsModalOpen}
       onClose={handleClose}
-      title="🧹 ล้างคลังคลิปทั้งหมด (เตรียมระบบใช้งานจริง)"
+      title="ล้างคลังคลิปทั้งหมด (เตรียมระบบใช้งานจริง)"
       subtitle="ลบเฉพาะข้อมูลคลิปต้นฉบับ ฟุตเทจ และชุดคลิป 5 อันดับ ออกจากทั้งเครื่องและ Firestore โดยเก็บรักษาหมวดหมู่ 3 ชั้นและการตั้งค่าไว้ครบถ้วน"
       maxWidthClass="max-w-xl"
     >

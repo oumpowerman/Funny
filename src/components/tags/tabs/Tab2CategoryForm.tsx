@@ -4,12 +4,18 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Edit3,
+  Folder,
   FolderPlus,
   Layers,
+  PawPrint,
   Plus,
   RotateCcw,
   Sparkles,
   Tag,
+  Target,
+  User,
+  Zap,
 } from 'lucide-react';
 import {
   CategoryTag,
@@ -45,6 +51,14 @@ interface Tab2CategoryFormProps {
   onResetForm: () => void;
   onGoToHierarchyTab: () => void;
 }
+
+const getSubtypeIcon = (subtype?: EntitySubtype) => {
+  if (subtype === 'PERSON') return <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />;
+  if (subtype === 'ANIMAL') return <PawPrint className="w-3.5 h-3.5 text-emerald-600 shrink-0" />;
+  if (subtype === 'TOPIC') return <Target className="w-3.5 h-3.5 text-rose-600 shrink-0" />;
+  if (subtype === 'ACTION') return <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />;
+  return <Tag className="w-3.5 h-3.5 text-slate-500 shrink-0" />;
+};
 
 export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
   mainCategories,
@@ -88,10 +102,14 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
           >
             <div className="flex items-center gap-2.5">
               <span className="w-8 h-8 rounded-xl bg-white border border-current/15 flex items-center justify-center text-base shadow-2xs">
-                {formState.editingTagId ? '✏️' : '↳'}
+                {formState.editingTagId ? (
+                  <Edit3 className="w-4 h-4 text-amber-600" />
+                ) : (
+                  <span className="font-bold text-purple-600">↳</span>
+                )}
               </span>
               <div>
-                <div className="text-xs font-black uppercase tracking-wider opacity-75">
+                <div className="text-xs font-bold uppercase tracking-wider opacity-75">
                   {formState.editingTagId
                     ? `โหมดแก้ไขหมวดหมู่ (${formState.editingTagId})`
                     : 'โหมดเพิ่มหมวดย่อย (Tier 2) ภายใต้หมวดหลัก'}
@@ -100,12 +118,13 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
                   {formState.editingTagId ? (
                     <>กำลังแก้ไข: &ldquo;{editingTag?.name || formState.name}&rdquo;</>
                   ) : (
-                    <>
-                      หมวดหมู่แม่ที่เลือกไว้:{' '}
-                      <span className="underline decoration-purple-400 font-black">
-                        📁 {selectedParent?.name}
+                    <span className="flex items-center gap-1.5 flex-wrap">
+                      <span>หมวดหมู่แม่ที่เลือกไว้:</span>
+                      <span className="underline decoration-purple-400 font-bold inline-flex items-center gap-1">
+                        <Folder className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+                        <span>{selectedParent?.name}</span>
                       </span>
-                    </>
+                    </span>
                   )}
                 </div>
               </div>
@@ -271,7 +290,7 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
                       <option value="">-- เลือกหมวดหมู่หลัก (Tier 1) --</option>
                       {mainCategories.map((mainCat) => (
                         <option key={mainCat.id} value={mainCat.id}>
-                          📁 {mainCat.name} ({mainCat.id})
+                          {mainCat.name} ({mainCat.id})
                         </option>
                       ))}
                     </select>
@@ -279,7 +298,7 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
 
                   {/* Entity Subtype Pastel Buttons */}
                   <div>
-                    <label className="block text-xs font-black text-purple-950 mb-1.5">
+                    <label className="block text-xs font-bold text-purple-950 mb-1.5">
                       ประเภทของหมวดย่อย (Entity Subtype)
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -295,12 +314,12 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
                             }
                             className={`px-2.5 py-2 rounded-xl border text-left transition-all cursor-pointer ${
                               isSelected
-                                ? `${opt.pastelClass} border-current ring-2 ring-purple-200 font-black`
+                                ? `${opt.pastelClass} border-current ring-2 ring-purple-200 font-bold`
                                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold'
                             }`}
                           >
                             <div className="text-xs flex items-center gap-1.5">
-                              <span>{opt.emoji}</span>
+                              {getSubtypeIcon(opt.value)}
                               <span className="truncate">{opt.label.split(' ')[0]}</span>
                             </div>
                             <div className="text-[10px] opacity-75 truncate mt-0.5">
@@ -434,20 +453,18 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
             >
               <div className="flex items-center justify-between gap-2">
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black border ${activeColorConfig.badgeBg}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${activeColorConfig.badgeBg}`}
                 >
                   {formState.tier === 1 ? (
-                    <>📁 {formState.name.trim() || 'ชื่อหมวดหมู่หลัก...'}</>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Folder className="w-3.5 h-3.5 text-indigo-700 shrink-0" />
+                      <span>{formState.name.trim() || 'ชื่อหมวดหมู่หลัก...'}</span>
+                    </span>
                   ) : (
-                    <>
-                      <span>
-                        {
-                          ENTITY_SUBTYPE_OPTIONS.find((e) => e.value === formState.entityType)
-                            ?.emoji
-                        }
-                      </span>
+                    <span className="inline-flex items-center gap-1.5">
+                      {getSubtypeIcon(formState.entityType)}
                       <span>#{formState.name.trim() || 'ชื่อหมวดย่อย...'}</span>
-                    </>
+                    </span>
                   )}
                 </span>
 
@@ -457,10 +474,17 @@ export const Tab2CategoryForm: React.FC<Tab2CategoryFormProps> = ({
               </div>
 
               {formState.tier === 2 && (
-                <div className="text-xs font-semibold text-slate-700 bg-white/80 rounded-xl px-3 py-2 border border-white">
-                  สังกัดหมวดหลัก:{' '}
-                  <strong className="text-slate-900">
-                    {selectedParent ? `📁 ${selectedParent.name}` : 'ยังไม่ได้เลือกหมวดหลัก'}
+                <div className="text-xs font-semibold text-slate-700 bg-white/80 rounded-xl px-3 py-2 border border-white flex items-center gap-1.5">
+                  <span>สังกัดหมวดหลัก:</span>
+                  <strong className="text-slate-900 inline-flex items-center gap-1">
+                    {selectedParent ? (
+                      <>
+                        <Folder className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                        <span>{selectedParent.name}</span>
+                      </>
+                    ) : (
+                      'ยังไม่ได้เลือกหมวดหลัก'
+                    )}
                   </strong>
                 </div>
               )}

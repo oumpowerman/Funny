@@ -1,4 +1,6 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'motion/react';
+import { AlertTriangle } from 'lucide-react';
 import { DuplicateSubcategoryWarning } from './builder.types';
 
 interface DiversityCollisionBannerProps {
@@ -8,27 +10,35 @@ interface DiversityCollisionBannerProps {
 export const DiversityCollisionBanner: React.FC<DiversityCollisionBannerProps> = ({
   duplicateSubcategories,
 }) => {
-  if (duplicateSubcategories.length === 0) return null;
-
   return (
-    <div className="bg-amber-50 border-2 border-amber-400 rounded-xl p-3.5 flex items-start gap-3 shadow-xs">
-      <span className="text-xl shrink-0">⚠️</span>
-      <div className="space-y-1">
-        <div className="text-xs font-bold text-amber-950">
-          ตรวจพบหัวข้อย่อยซ้ำกันในโหมดรวมหลากหลาย:
-        </div>
-        <div className="text-xs text-amber-900">
-          {duplicateSubcategories.map((item, idx) => (
-            <span key={idx} className="inline-block mr-3">
-              พบ <strong>#{item.tag.name}</strong> ซ้ำในช่องอันดับ [
-              {item.ranks.map((r) => `อันดับ ${r}`).join(', ')}]
-            </span>
-          ))}
-        </div>
-        <p className="text-[11px] text-amber-800">
-          💡 แนะนำ: โหมดรวมหลากหลายควรกระจายหัวข้อย่อยหรือบุคคลไม่ให้ซ้ำกันทั้ง 5 อันดับ เพื่อความสนุกแปลกใหม่ของผู้ชม หรือเปลี่ยนรูปแบบด้านบนเป็น &quot;🎯 เจาะจงหัวข้อย่อยเรื่องเดียว (Solo / Topic Special EP)&quot;
-        </p>
-      </div>
-    </div>
+    <AnimatePresence initial={false}>
+      {duplicateSubcategories.length > 0 && (
+        <motion.div
+          key="diversity-collision-banner"
+          initial={{ height: 0, opacity: 0, y: -6 }}
+          animate={{ height: 'auto', opacity: 1, y: 0 }}
+          exit={{ height: 0, opacity: 0, y: -6 }}
+          transition={{ duration: 0.26, ease: [0.16, 1, 0.3, 1] }}
+          className="overflow-hidden"
+        >
+          <div className="bg-amber-50 border border-amber-300 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2 text-amber-950">
+              <span className="font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                <span>หมวดย่อยซ้ำกันในโหมดรวมหลากหลาย:</span>
+              </span>
+              {duplicateSubcategories.map((item, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-semibold"
+                >
+                  #{item.tag.name} (อันดับ {item.ranks.join(', ')})
+                </span>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

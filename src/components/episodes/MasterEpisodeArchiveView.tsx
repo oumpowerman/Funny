@@ -9,6 +9,12 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Package,
+  Repeat,
+  TrendingUp,
+  TrendingDown,
+  Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import { formatThaiDate } from '../../utils/fileNameGenerator';
@@ -193,8 +199,9 @@ export const MasterEpisodeArchiveView: React.FC = () => {
       <div className="bg-white border border-slate-200/90 rounded-2xl p-5 space-y-5 shadow-2xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900">
-              📦 ภาพรวมคลังคลิปหลัก & ความคุ้มค่าการใช้ฟุตเทจ (Master Archive Overview)
+            <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <Package className="w-5 h-5 text-indigo-600 shrink-0" />
+              <span>ภาพรวมคลังคลิปหลัก & ความคุ้มค่าการใช้ฟุตเทจ (Master Archive Overview)</span>
             </h1>
             <p className="text-xs text-slate-500">
               เปรียบเทียบสัดส่วนการผลิตคลิปหลักแต่ละหมวดหมู่จากมากไปน้อย พร้อมตรวจสอบว่าฟุตเทจในคลังถูกหยิบมาใช้งานอย่างคุ้มค่าแล้วหรือยัง
@@ -223,8 +230,9 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                 : 'bg-slate-50/70 hover:bg-indigo-50/40 border-slate-200/90 text-slate-900'
             }`}
           >
-            <div className="text-xs font-semibold text-indigo-700">
-              📦 คลิปหลักทั้งหมดในคลัง
+            <div className="text-xs font-semibold text-indigo-700 flex items-center gap-1.5">
+              <Package className="w-3.5 h-3.5 text-indigo-600" />
+              <span>คลิปหลักทั้งหมดในคลัง</span>
             </div>
             <div className="mt-1.5 flex items-baseline justify-between">
               <span className="text-2xl font-mono font-extrabold tabular-nums text-slate-900">
@@ -239,8 +247,9 @@ export const MasterEpisodeArchiveView: React.FC = () => {
 
           {/* Card 2: Footage Utilization Rate */}
           <div className="p-4 rounded-xl border border-emerald-200/90 bg-emerald-50/60 text-slate-900">
-            <div className="text-xs font-semibold text-emerald-800">
-              ♻️ อัตราหยิบฟุตเทจมาใช้งานจริง
+            <div className="text-xs font-semibold text-emerald-800 flex items-center gap-1.5">
+              <Repeat className="w-3.5 h-3.5 text-emerald-600" />
+              <span>อัตราหยิบฟุตเทจมาใช้งานจริง</span>
             </div>
             <div className="mt-1.5 flex items-baseline justify-between">
               <span className="text-2xl font-mono font-extrabold tabular-nums text-emerald-700">
@@ -270,8 +279,9 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                   : 'bg-sky-50/60 hover:bg-sky-100/60 border-sky-200/90 text-slate-900'
               }`}
             >
-              <div className="text-xs font-semibold text-sky-800">
-                🔼 หมวดหมู่ที่ผลิตมากที่สุด
+              <div className="text-xs font-semibold text-sky-800 flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-sky-600" />
+                <span>หมวดหมู่ที่ผลิตมากที่สุด</span>
               </div>
               <div className="mt-1.5 flex items-baseline justify-between gap-2">
                 <span className="text-sm sm:text-base font-extrabold text-slate-900 truncate">
@@ -302,8 +312,9 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                   : 'bg-amber-50/60 hover:bg-amber-100/60 border-amber-200/90 text-slate-900'
               }`}
             >
-              <div className="text-xs font-semibold text-amber-800">
-                🔽 หมวดหมู่ที่ผลิตน้อยที่สุด (น่าปั้นเพิ่ม)
+              <div className="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
+                <TrendingDown className="w-3.5 h-3.5 text-amber-600" />
+                <span>หมวดหมู่ที่ผลิตน้อยที่สุด (น่าปั้นเพิ่ม)</span>
               </div>
               <div className="mt-1.5 flex items-baseline justify-between gap-2">
                 <span className="text-sm sm:text-base font-extrabold text-slate-900 truncate">
@@ -375,7 +386,7 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                   : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50'
               }`}
             >
-              <span>{isComparisonExpanded ? 'พับเก็บตารางเปรียบเทียบ' : '✨ กางดูกราฟเปรียบเทียบหมวดหมู่'}</span>
+              <span>{isComparisonExpanded ? 'พับเก็บตารางเปรียบเทียบ' : 'กางดูกราฟเปรียบเทียบหมวดหมู่'}</span>
               <motion.span
                 animate={{ rotate: isComparisonExpanded ? 180 : 0 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 22 }}
@@ -663,12 +674,14 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2 text-xs font-mono tabular-nums text-slate-600">
-                        <span className="text-sky-700 font-bold">
-                          🔵 ฟุตใหม่ {mix.newCount}
+                        <span className="inline-flex items-center gap-1 text-sky-700 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200">
+                          <Sparkles className="w-3 h-3 text-sky-600" />
+                          <span>ใหม่ {mix.newCount}</span>
                         </span>
                         <span>·</span>
-                        <span className="text-emerald-700 font-bold">
-                          🟢 วนใช้ {mix.recycledCount}
+                        <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>วนใช้ {mix.recycledCount}</span>
                         </span>
                       </div>
                     </div>
@@ -750,12 +763,14 @@ export const MasterEpisodeArchiveView: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-3 px-4 font-mono tabular-nums whitespace-nowrap">
-                          <span className="text-sky-700 font-bold">
-                            🔵 ใหม่ {mix.newCount}
+                          <span className="inline-flex items-center gap-1 text-sky-700 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 text-xs">
+                            <Sparkles className="w-3 h-3 text-sky-600" />
+                            <span>ใหม่ {mix.newCount}</span>
                           </span>
                           <span className="text-slate-400 mx-1.5">·</span>
-                          <span className="text-emerald-700 font-bold">
-                            🟢 วนใช้ {mix.recycledCount}
+                          <span className="inline-flex items-center gap-1 text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 text-xs">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            <span>วนใช้ {mix.recycledCount}</span>
                           </span>
                         </td>
                         <td className="py-3 px-4 font-mono tabular-nums text-slate-600 whitespace-nowrap">

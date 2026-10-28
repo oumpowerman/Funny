@@ -89,10 +89,10 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
           aria-label="กรองตามสถานะความพร้อมใช้"
         >
           <option value="ALL">สถานะ: ทั้งหมด</option>
-          <option value="NEW_UNTOUCHED">🔵 คลิปใหม่แกะกล่อง</option>
-          <option value="READY_FRESH">🟢 พร้อมใช้งาน (พักครบ)</option>
-          <option value="HIGH_VELOCITY_WARNING">🟡 ใช้งานถี่ใน 90 วัน</option>
-          <option value="RECENT_COOLDOWN">🔴 พักคูลดาวน์</option>
+          <option value="NEW_UNTOUCHED">คลิปใหม่แกะกล่อง (New)</option>
+          <option value="READY_FRESH">พร้อมใช้งาน / พักครบ (Ready)</option>
+          <option value="HIGH_VELOCITY_WARNING">เฝ้าระวัง / ใช้ถี่ (Warning)</option>
+          <option value="RECENT_COOLDOWN">พักคูลดาวน์ (Cooldown)</option>
         </select>
 
         {/* Quick Production Readiness / Exception Filter */}
@@ -105,11 +105,11 @@ export const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
             aria-label="ตัวกรองเงื่อนไขการผลิต"
           >
             <option value="ALL">เงื่อนไข: ทั้งหมด</option>
-            <option value="CATEGORY_READY_5">✅ หมวดพร้อมผลิต (≥ 5 คลิป)</option>
-            <option value="RECIPE_ALL_NEW">🆕 หมวดทำคลิปใหม่ล้วน 5:0</option>
-            <option value="RECIPE_SMART_MIX">♻️ หมวดทำสูตร 2 ใหม่ + 3 เก่าสด</option>
-            <option value="UNTAGGED_ONLY">📥 พื้นที่พักรอจัดหมวดหมู่ ({untaggedCount})</option>
-            <option value="MISSING_DRIVE_ONLY">📂 รอลิงก์ไฟล์ Drive ({missingDriveCount})</option>
+            <option value="CATEGORY_READY_5">หมวดพร้อมผลิต (≥ 5 คลิป)</option>
+            <option value="RECIPE_ALL_NEW">สูตรคลิปใหม่ล้วน (5:0)</option>
+            <option value="RECIPE_SMART_MIX">สูตรผสมอัจฉริยะ (2 ใหม่ + 3 สด)</option>
+            <option value="UNTAGGED_ONLY">พื้นที่พักรอจัดหมวดหมู่ ({untaggedCount})</option>
+            <option value="MISSING_DRIVE_ONLY">รอลิงก์ไฟล์ Drive ({missingDriveCount})</option>
           </select>
         </div>
 

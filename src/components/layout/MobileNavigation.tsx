@@ -56,7 +56,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
   const navItems: {
     id: ActiveNavTab;
-    emoji: string;
     label: string;
     shortLabel: string;
     sublabel: string;
@@ -65,7 +64,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   }[] = [
     {
       id: 'DASHBOARD',
-      emoji: '📊',
       label: 'ภาพรวมช่อง',
       shortLabel: 'ภาพรวม',
       sublabel: 'Matrix & สต็อกฟุต',
@@ -73,7 +71,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     },
     {
       id: 'FOOTAGE_LIBRARY',
-      emoji: '🎞️',
       label: 'คลังฟุตเทจ',
       shortLabel: 'ฟุตเทจ',
       sublabel: '1:1 & 1:N Vault',
@@ -82,7 +79,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     },
     {
       id: 'SOURCE_SPLITTER',
-      emoji: '✂️',
       label: 'หั่นคลิปยาว',
       shortLabel: 'หั่นคลิป',
       sublabel: '1:N Splitter',
@@ -91,7 +87,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     },
     {
       id: 'EPISODE_BUILDER',
-      emoji: '🏆',
       label: 'จัด 5 อันดับ',
       shortLabel: 'จัดอันดับ',
       sublabel: 'Smart Mix 5→1',
@@ -99,7 +94,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
     },
     {
       id: 'MASTER_ARCHIVE',
-      emoji: '📦',
       label: 'คลังคลิปหลัก',
       shortLabel: 'คลังหลัก',
       sublabel: 'สัดส่วนหมวด & ความคุ้มค่า',
@@ -234,8 +228,10 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="text-lg shrink-0" aria-hidden="true">
-                              {item.emoji}
+                            <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                              isActive ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-600'
+                            }`} aria-hidden="true">
+                              {item.icon}
                             </span>
                             <div className="min-w-0">
                               <div className="text-xs font-bold truncate">
@@ -428,8 +424,8 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                 )}
 
                 <div className="relative z-10 flex items-center justify-center">
-                  <span className="text-base leading-none" aria-hidden="true">
-                    {item.emoji}
+                  <span className={`flex items-center justify-center ${isActive ? 'text-indigo-600' : 'text-slate-500'}`} aria-hidden="true">
+                    {item.icon}
                   </span>
                   {item.count !== undefined && (
                     <span

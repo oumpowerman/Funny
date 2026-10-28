@@ -194,7 +194,7 @@ export const CategoryTagManagerModal: React.FC = () => {
     <Modal
       isOpen={isTagManagerOpen}
       onClose={() => setIsTagManagerOpen(false)}
-      title="🎨 ตั้งค่าเกณฑ์สี & จัดการผังหมวดหมู่ฟุตเทจ 2 ชั้น"
+      title="ตั้งค่าเกณฑ์สี & จัดการผังหมวดหมู่ฟุตเทจ 2 ชั้น"
       subtitle="เรียงลำดับ 3 ขั้นตอนเข้าใจง่าย: 01 ตั้งค่าเกณฑ์สี ➔ 02 เพิ่ม/แก้ไขหมวดหมู่ ➔ 03 จัดการผังหมวดหมู่ 2 ชั้น"
       maxWidthClass="max-w-5xl"
     >

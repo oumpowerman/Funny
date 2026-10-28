@@ -7,6 +7,9 @@ import {
   Plus,
   RotateCcw,
   Sparkles,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { ComputedFootage } from '../../../types/footage.types';
 import { SystemSettings } from '../../../types/tag.types';
@@ -186,26 +189,38 @@ export const Tab1StatusRulesConfig: React.FC<Tab1StatusRulesConfigProps> = ({
         {/* 4 Summary Pills */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div className="bg-sky-50/90 border border-sky-200 rounded-xl px-3 py-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-sky-900">🔵 ฟ้า (ใหม่)</span>
-            <span className="text-sm font-mono font-black text-sky-800 tabular-nums">
+            <span className="text-xs font-bold text-sky-900 inline-flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+              <span>ฟ้า (ใหม่)</span>
+            </span>
+            <span className="text-sm font-mono font-bold text-sky-800 tabular-nums">
               {livePreview.blueNew} คลิป
             </span>
           </div>
           <div className="bg-emerald-50/90 border border-emerald-200 rounded-xl px-3 py-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-900">🟢 เขียว (พร้อม)</span>
-            <span className="text-sm font-mono font-black text-emerald-800 tabular-nums">
+            <span className="text-xs font-bold text-emerald-900 inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>เขียว (พร้อม)</span>
+            </span>
+            <span className="text-sm font-mono font-bold text-emerald-800 tabular-nums">
               {livePreview.greenReady} คลิป
             </span>
           </div>
           <div className="bg-amber-50/90 border border-amber-200 rounded-xl px-3 py-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-900">🟡 เหลือง (เตือน)</span>
-            <span className="text-sm font-mono font-black text-amber-800 tabular-nums">
+            <span className="text-xs font-bold text-amber-900 inline-flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              <span>เหลือง (เตือน)</span>
+            </span>
+            <span className="text-sm font-mono font-bold text-amber-800 tabular-nums">
               {livePreview.yellowWarning} คลิป
             </span>
           </div>
           <div className="bg-rose-50/90 border border-rose-200 rounded-xl px-3 py-2 flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-900">🔴 แดง (ห้ามใช้)</span>
-            <span className="text-sm font-mono font-black text-rose-800 tabular-nums">
+            <span className="text-xs font-bold text-rose-900 inline-flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-rose-600" />
+              <span>แดง (ห้ามใช้)</span>
+            </span>
+            <span className="text-sm font-mono font-bold text-rose-800 tabular-nums">
               {livePreview.redCooldown} คลิป
             </span>
           </div>
@@ -223,8 +238,9 @@ export const Tab1StatusRulesConfig: React.FC<Tab1StatusRulesConfigProps> = ({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-sky-100 text-sky-900 border border-sky-200">
-                🔵 สถานะสีฟ้า · ฟุตเทจใหม่แกะกล่อง
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-sky-100 text-sky-900 border border-sky-200">
+                <Sparkles className="w-3 h-3 text-sky-600" />
+                <span>สถานะสีฟ้า · ฟุตเทจใหม่แกะกล่อง</span>
               </span>
               <h4 className="text-sm font-bold text-sky-950 mt-1.5">
                 ยังไม่เคยถูกใช้งานเลย (0 ครั้ง)
@@ -250,8 +266,9 @@ export const Tab1StatusRulesConfig: React.FC<Tab1StatusRulesConfigProps> = ({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-emerald-100 text-emerald-900 border border-emerald-200">
-                🟢 สถานะสีเขียว · พักครบพร้อมใช้งาน
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                <span>สถานะสีเขียว · พักครบพร้อมใช้งาน</span>
               </span>
               <h4 className="text-sm font-bold text-emerald-950 mt-1.5">
                 กำหนดวันพักที่ถือว่าสดพร้อมนำกลับมาใช้
@@ -311,8 +328,9 @@ export const Tab1StatusRulesConfig: React.FC<Tab1StatusRulesConfigProps> = ({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-200">
-                🟡 สถานะสีเหลือง · เริ่มใช้บ่อย (เตือนให้ระวัง)
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                <AlertTriangle className="w-3 h-3 text-amber-600" />
+                <span>สถานะสีเหลือง · เริ่มใช้บ่อย (เตือนให้ระวัง)</span>
               </span>
               <h4 className="text-sm font-bold text-amber-950 mt-1.5">
                 กำหนดโควตาจำนวนครั้งที่เริ่มแจ้งเตือนสีเหลือง
@@ -399,8 +417,9 @@ export const Tab1StatusRulesConfig: React.FC<Tab1StatusRulesConfigProps> = ({
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-black bg-rose-100 text-rose-900 border border-rose-200">
-                🔴 สถานะสีแดง · ติดวันพัก / ห้ามใช้ซ้ำ
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-rose-100 text-rose-900 border border-rose-200">
+                <Clock className="w-3 h-3 text-rose-600" />
+                <span>สถานะสีแดง · ติดวันพัก / ห้ามใช้ซ้ำ</span>
               </span>
               <h4 className="text-sm font-bold text-rose-950 mt-1.5">
                 กำหนดวันพักขั้นต่ำ & เพดานการใช้ซ้ำสูงสุด

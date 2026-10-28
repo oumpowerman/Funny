@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { X } from 'lucide-react';
+import { AlertTriangle, AlertOctagon, Calendar, X } from 'lucide-react';
 import { EpisodeSimilarityMatch } from '../../../utils/collisionDetector';
 
 interface DuplicateEpisodeConfirmModalProps {
@@ -38,9 +38,11 @@ export const DuplicateEpisodeConfirmModal: React.FC<
                     : 'bg-amber-500 text-white shadow-sm'
                 }`}
               >
-                {topSimilarityMatch.severity === 'EXACT_DUPLICATE_100'
-                  ? '🚨'
-                  : '⚠️'}
+                {topSimilarityMatch.severity === 'EXACT_DUPLICATE_100' ? (
+                  <AlertOctagon className="w-6 h-6 text-white" />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-extrabold tracking-tight">
@@ -74,8 +76,9 @@ export const DuplicateEpisodeConfirmModal: React.FC<
                   {topSimilarityMatch.matchedEpisode.title}&rdquo;
                 </div>
                 <div className="text-slate-600 flex items-center gap-2 text-[11px]">
-                  <span>
-                    📅 วันที่ออกอากาศ: {topSimilarityMatch.matchedEpisode.publishDate}
+                  <span className="inline-flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>วันที่ออกอากาศ: {topSimilarityMatch.matchedEpisode.publishDate}</span>
                   </span>
                   <span>•</span>
                   <span className="font-mono font-bold text-rose-600">

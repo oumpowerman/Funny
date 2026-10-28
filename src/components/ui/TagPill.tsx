@@ -1,6 +1,14 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { X } from 'lucide-react';
+import {
+  Inbox,
+  PawPrint,
+  Tag,
+  Target,
+  User,
+  X,
+  Zap,
+} from 'lucide-react';
 import { isStagingTagId } from '../../services/seedData';
 import { CategoryTag } from '../../types/tag.types';
 
@@ -28,13 +36,29 @@ const COLOR_TEXT_MAP: Record<string, string> = {
   slate: 'text-slate-700',
 };
 
+export const getEntityIconNode = (tag: CategoryTag): React.ReactNode => {
+  if (isStagingTagId(tag.id) || tag.groupType === 'STAGING') {
+    return <Inbox className="w-3.5 h-3.5 text-amber-600 shrink-0" />;
+  }
+  if (tag.entityType === 'PERSON' || tag.groupType === 'PERSON') {
+    return <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />;
+  }
+  if (tag.entityType === 'ANIMAL') {
+    return <PawPrint className="w-3.5 h-3.5 text-emerald-600 shrink-0" />;
+  }
+  if (tag.entityType === 'TOPIC') {
+    return <Target className="w-3.5 h-3.5 text-rose-600 shrink-0" />;
+  }
+  if (tag.groupType === 'ACTION') {
+    return <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />;
+  }
+  return <Tag className="w-3.5 h-3.5 text-slate-500 shrink-0" />;
+};
+
+// Backward-compatible helper for legacy components expecting string (returns empty string or fallback)
 export const getEntityIcon = (tag: CategoryTag): string => {
-  if (isStagingTagId(tag.id) || tag.groupType === 'STAGING') return '📥';
-  if (tag.entityType === 'PERSON' || tag.groupType === 'PERSON') return '👤';
-  if (tag.entityType === 'ANIMAL') return '🐾';
-  if (tag.entityType === 'TOPIC') return '🎯';
-  if (tag.groupType === 'ACTION') return '⚡';
-  return '🏷️';
+  if (isStagingTagId(tag.id) || tag.groupType === 'STAGING') return '';
+  return '';
 };
 
 export const TagPill: React.FC<TagPillProps> = ({
@@ -52,10 +76,10 @@ export const TagPill: React.FC<TagPillProps> = ({
   if (!tag) return null;
 
   const textColor = COLOR_TEXT_MAP[tag.color] || 'text-slate-700';
-  const icon = showEntityIcon ? getEntityIcon(tag) : null;
+  const iconNode = showEntityIcon ? getEntityIconNode(tag) : null;
   const isStaging = isStagingTagId(tag.id) || tag.groupType === 'STAGING';
-  const isSubcategory = tag.tier === 2 || !!tag.parentId;
-  const paddingClass = size === 'md' ? 'px-3.5 py-1.5 text-sm' : 'px-3 py-1 text-xs';
+  const isSubcategory = tag.tier === 2 || Boolean(tag.parentId);
+  const paddingClass = size === 'md' ? 'px-3 py-1.5 text-sm' : 'px-2.5 py-1 text-xs';
 
   if (onClick || onRemove) {
     return (
@@ -71,10 +95,10 @@ export const TagPill: React.FC<TagPillProps> = ({
               ? 'text-white border-indigo-600 shadow-xs'
               : 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
             : isStaging
-            ? 'bg-amber-100/90 text-amber-950 border-amber-300 hover:bg-amber-200/80'
+            ? 'bg-amber-50/90 text-amber-950 border-amber-300 hover:bg-amber-100/80'
             : isSubcategory
-            ? 'bg-amber-50/90 text-amber-900 border-amber-200 hover:bg-amber-100'
-            : 'bg-slate-100 text-slate-700 border-slate-200/80 hover:bg-slate-200 hover:text-slate-900'
+            ? 'bg-amber-50/70 text-amber-900 border-amber-200/90 hover:bg-amber-100/70'
+            : 'bg-slate-50/90 text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
         }`}
       >
         {selected && activeLayoutId && (
@@ -85,7 +109,7 @@ export const TagPill: React.FC<TagPillProps> = ({
           />
         )}
         <span className="relative z-10 inline-flex items-center gap-1.5">
-          {icon && <span className="text-sm">{icon}</span>}
+          {iconNode}
           {showParent && parentTag && (
             <span className="text-slate-400 font-normal">{parentTag.name} &rsaquo;</span>
           )}
@@ -122,13 +146,13 @@ export const TagPill: React.FC<TagPillProps> = ({
     <span
       className={`inline-flex items-center gap-1.5 ${paddingClass} font-semibold ${
         isStaging
-          ? 'bg-amber-100/90 text-amber-950 border border-amber-300 rounded-md'
+          ? 'bg-amber-50/90 text-amber-950 border border-amber-300 rounded-lg'
           : isSubcategory
-          ? 'bg-amber-50 text-amber-900 border border-amber-200/70 rounded-md'
-          : textColor
+          ? 'bg-amber-50/70 text-amber-900 border border-amber-200/70 rounded-lg'
+          : `${textColor} bg-slate-50 border border-slate-200/80 rounded-lg`
       } whitespace-nowrap shrink-0`}
     >
-      {icon && <span className="text-sm">{icon}</span>}
+      {iconNode}
       {showParent && parentTag && (
         <span className="text-slate-400 font-normal">{parentTag.name} &rsaquo;</span>
       )}

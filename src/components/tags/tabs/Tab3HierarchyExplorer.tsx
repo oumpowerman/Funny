@@ -4,17 +4,23 @@ import {
   ChevronDown,
   ChevronRight,
   Edit3,
+  Folder,
+  FolderOpen,
   FolderPlus,
   LayoutGrid,
+  PawPrint,
   Plus,
   Search,
   Table2,
+  Tag,
+  Target,
   Trash2,
+  User,
+  Zap,
 } from 'lucide-react';
 import { CategoryMatrixStat } from '../../../context/CMSContext';
 import { CategoryTag, TagGroupType } from '../../../types/tag.types';
 import {
-  ENTITY_SUBTYPE_OPTIONS,
   getPastelColorConfig,
 } from '../constants/tagPastelPalette';
 
@@ -113,10 +119,12 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
     0
   );
 
-  const getEntityEmoji = (entityType?: string) => {
-    return (
-      ENTITY_SUBTYPE_OPTIONS.find((e) => e.value === entityType)?.emoji || '🏷️'
-    );
+  const getEntityIconNode = (entityType?: string) => {
+    if (entityType === 'PERSON') return <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />;
+    if (entityType === 'ANIMAL') return <PawPrint className="w-3.5 h-3.5 text-emerald-600 shrink-0" />;
+    if (entityType === 'TOPIC') return <Target className="w-3.5 h-3.5 text-rose-600 shrink-0" />;
+    if (entityType === 'ACTION') return <Zap className="w-3.5 h-3.5 text-amber-600 shrink-0" />;
+    return <Tag className="w-3.5 h-3.5 text-slate-500 shrink-0" />;
   };
 
   return (
@@ -126,7 +134,7 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="px-3 py-1.5 rounded-xl bg-white/90 border border-indigo-200 flex items-center gap-2 shadow-2xs">
             <span className="text-xs font-bold text-slate-600">หมวดหลัก (Tier 1):</span>
-            <span className="text-sm font-mono font-black text-indigo-700">
+            <span className="text-sm font-mono font-bold text-indigo-700">
               {mainCategories.length} หมวด
             </span>
           </div>
@@ -310,12 +318,13 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
                       <div className="space-y-1 flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-md border ${pastel.badgeBg}`}
+                            className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border ${pastel.badgeBg}`}
                           >
                             Tier 1 · {mainCat.groupType}
                           </span>
-                          <h4 className={`text-sm sm:text-base font-black ${pastel.pastelText}`}>
-                            📁 {mainCat.name}
+                          <h4 className={`text-sm sm:text-base font-bold ${pastel.pastelText} flex items-center gap-1.5`}>
+                            <Folder className="w-4 h-4 text-indigo-600 shrink-0" />
+                            <span>{mainCat.name}</span>
                           </h4>
                           <span className="text-[11px] font-mono text-slate-500 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200/60">
                             {children.length} หมวดย่อย
@@ -424,14 +433,12 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
                                   >
                                     <div className="min-w-0 flex-1">
                                       <div className="flex items-center gap-1.5">
-                                        <span className="text-sm">
-                                          {getEntityEmoji(child.entityType)}
-                                        </span>
-                                        <span className="text-xs font-black text-slate-900 truncate">
+                                        {getEntityIconNode(child.entityType)}
+                                        <span className="text-xs font-bold text-slate-900 truncate">
                                           #{child.name}
                                         </span>
                                         {canSoloEp && (
-                                          <span className="px-1.5 py-0.5 text-[10px] font-black bg-emerald-100 text-emerald-800 rounded-md">
+                                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-md">
                                             Solo EP พร้อม!
                                           </span>
                                         )}
@@ -512,12 +519,13 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <span
-                                className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-md border ${pastel.badgeBg}`}
+                                className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border ${pastel.badgeBg}`}
                               >
                                 Tier 1
                               </span>
-                              <span className="text-sm font-black text-slate-900">
-                                📁 {mainCat.name}
+                              <span className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                                <Folder className="w-4 h-4 text-indigo-600 shrink-0" />
+                                <span>{mainCat.name}</span>
                               </span>
                               <span className="text-[11px] font-normal text-slate-500">
                                 ({children.length} หมวดย่อย)
@@ -527,13 +535,13 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
                           <td className="py-3 px-3 font-mono font-bold text-slate-600">
                             {mainCat.groupType}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono tabular-nums font-black text-slate-900">
+                          <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-slate-900">
                             {mainStat?.totalCount || 0}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono tabular-nums font-black text-emerald-700">
+                          <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-emerald-700">
                             {mainStat?.usableCount || 0}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono tabular-nums font-black text-indigo-700">
+                          <td className="py-3 px-3 text-right font-mono tabular-nums font-bold text-indigo-700">
                             {mainStat?.producibleEpisodesCount || 0} EP
                           </td>
                           <td className="py-3 px-4 text-right">
@@ -573,8 +581,8 @@ export const Tab3HierarchyExplorer: React.FC<Tab3HierarchyExplorerProps> = ({
                             <tr key={child.id} className="bg-white hover:bg-purple-50/40">
                               <td className="py-2.5 px-4 pl-10">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-purple-400 font-black">↳</span>
-                                  <span>{getEntityEmoji(child.entityType)}</span>
+                                  <span className="text-purple-400 font-bold">↳</span>
+                                  {getEntityIconNode(child.entityType)}
                                   <span className="font-bold text-slate-800">#{child.name}</span>
                                 </div>
                               </td>

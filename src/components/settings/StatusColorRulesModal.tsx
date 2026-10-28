@@ -1,5 +1,16 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, RotateCcw, Sliders } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  CheckCircle2,
+  Clock,
+  Lock,
+  RotateCcw,
+  ShieldCheck,
+  Sliders,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import { INITIAL_SETTINGS } from '../../services/seedData';
 import { SystemSettings } from '../../types/tag.types';
@@ -30,7 +41,7 @@ export const StatusColorRulesModal: React.FC = () => {
   );
   const [savedToast, setSavedToast] = useState(false);
 
-  // Sync local inputs when modal opens or external settings update
+  // Sync draft states when modal opens
   useEffect(() => {
     if (isStatusRuleModalOpen) {
       setCooldownDays(settings.cooldownDays ?? 14);
@@ -42,100 +53,85 @@ export const StatusColorRulesModal: React.FC = () => {
     }
   }, [isStatusRuleModalOpen, settings]);
 
-  // Normalized draft settings for real-time simulation
-  const draftSettings: SystemSettings = useMemo(() => {
-    const safeRedDays = Math.max(1, Number(cooldownDays) || 1);
-    const safeGreenDays = Math.max(safeRedDays, Number(greenReadyDays) || safeRedDays);
-    const safeYellow90 = Math.max(1, Number(maxUsagePer90Days) || 1);
-    const safeYellowTotal = Math.max(1, Number(yellowTotalUsageCount) || 1);
-    const safeRedMaxTotal = Math.max(
-      safeYellowTotal + 1,
-      Number(maxTotalUsageCount) || safeYellowTotal + 1
-    );
-
-    return {
+  // Draft settings payload for live preview
+  const draftSettings: SystemSettings = useMemo(
+    () => ({
       ...settings,
-      cooldownDays: safeRedDays,
-      greenReadyDays: safeGreenDays,
-      maxUsagePer90Days: safeYellow90,
-      yellowTotalUsageCount: safeYellowTotal,
-      maxTotalUsageCount: safeRedMaxTotal,
-    };
-  }, [
-    settings,
-    cooldownDays,
-    greenReadyDays,
-    maxUsagePer90Days,
-    yellowTotalUsageCount,
-    maxTotalUsageCount,
-  ]);
-
-  // Live Simulated Counts across the entire footage vault
-  const livePreview = useMemo(
-    () => simulateStatusDistribution(computedFootage, draftSettings),
-    [computedFootage, draftSettings]
+      cooldownDays,
+      greenReadyDays: Math.max(greenReadyDays, cooldownDays),
+      maxUsagePer90Days,
+      yellowTotalUsageCount,
+      maxTotalUsageCount,
+    }),
+    [
+      settings,
+      cooldownDays,
+      greenReadyDays,
+      maxUsagePer90Days,
+      yellowTotalUsageCount,
+      maxTotalUsageCount,
+    ]
   );
 
-  const applyPreset = (preset: {
-    cooldownDays: number;
-    greenReadyDays: number;
-    maxUsagePer90Days: number;
-    yellowTotalUsageCount: number;
-    maxTotalUsageCount: number;
-  }) => {
-    setCooldownDays(preset.cooldownDays);
-    setGreenReadyDays(preset.greenReadyDays);
-    setMaxUsagePer90Days(preset.maxUsagePer90Days);
-    setYellowTotalUsageCount(preset.yellowTotalUsageCount);
-    setMaxTotalUsageCount(preset.maxTotalUsageCount);
-  };
+  // Live simulation of how footage status counts shift
+  const livePreview = useMemo(() => {
+    return simulateStatusDistribution(computedFootage, draftSettings);
+  }, [computedFootage, draftSettings]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSettings({
-      cooldownDays: draftSettings.cooldownDays,
-      greenReadyDays: draftSettings.greenReadyDays,
-      maxUsagePer90Days: draftSettings.maxUsagePer90Days,
-      yellowTotalUsageCount: draftSettings.yellowTotalUsageCount,
-      maxTotalUsageCount: draftSettings.maxTotalUsageCount,
-    });
+    updateSettings(draftSettings);
     setSavedToast(true);
     setTimeout(() => {
       setSavedToast(false);
       setIsStatusRuleModalOpen(false);
-    }, 900);
+    }, 850);
+  };
+
+  const applyPreset = (preset: Partial<SystemSettings>) => {
+    if (preset.cooldownDays !== undefined) setCooldownDays(preset.cooldownDays);
+    if (preset.greenReadyDays !== undefined) setGreenReadyDays(preset.greenReadyDays);
+    if (preset.maxUsagePer90Days !== undefined)
+      setMaxUsagePer90Days(preset.maxUsagePer90Days);
+    if (preset.yellowTotalUsageCount !== undefined)
+      setYellowTotalUsageCount(preset.yellowTotalUsageCount);
+    if (preset.maxTotalUsageCount !== undefined)
+      setMaxTotalUsageCount(preset.maxTotalUsageCount);
   };
 
   return (
     <Modal
       isOpen={isStatusRuleModalOpen}
       onClose={() => setIsStatusRuleModalOpen(false)}
-      title="🎨 ตั้งค่าเกณฑ์สีสถานะฟุตเทจ (🔵 ฟ้า · 🟢 เขียว · 🟡 เหลือง · 🔴 แดง)"
+      title="ตั้งค่าเกณฑ์สีสถานะฟุตเทจ (ฟ้า · เขียว · เหลือง · แดง)"
       subtitle="กำหนดตัวเลขจำนวนวันพักและจำนวนครั้งที่ใช้ซ้ำได้เอง พร้อมจำลองผลลัพธ์จำนวนคลิปในคลังแบบเรียลไทม์ทันที"
       maxWidthClass="max-w-4xl"
     >
       <form onSubmit={handleSave} className="space-y-6">
         {/* =================================================================
-            1. LIVE VAULT SIMULATION PREVIEW BAR (ดูผลทันทีเมื่อปรับตัวเลข)
+            1. LIVE VAULT SIMULATION PREVIEW BAR
            ================================================================= */}
         <div className="bg-indigo-50/60 border border-indigo-200/90 rounded-2xl p-4 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Sliders className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+              <span className="text-xs sm:text-sm font-bold text-slate-900">
                 ผลลัพธ์จำนวนฟุตเทจในคลังตามตัวเลขที่ตั้งด้านล่าง (จากทั้งหมด {computedFootage.length} คลิป)
               </span>
             </div>
             <span className="text-xs font-mono font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
-              พร้อมหยิบใช้งานรวม (🔵+🟢): {livePreview.totalUsable} คลิป
+              พร้อมหยิบใช้งานรวม: {livePreview.totalUsable} คลิป
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div className="bg-white border border-sky-200 rounded-xl p-3">
-              <div className="text-xs font-bold text-sky-800">🔵 สีฟ้า (ใหม่แกะกล่อง)</div>
+              <div className="text-xs font-bold text-sky-800 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                <span>สีฟ้า (ใหม่แกะกล่อง)</span>
+              </div>
               <div className="mt-1 flex items-baseline justify-between font-mono tabular-nums">
-                <span className="text-xl font-extrabold text-sky-700">
+                <span className="text-xl font-bold text-sky-700">
                   {livePreview.blueNew}
                 </span>
                 <span className="text-[11px] text-slate-500">ใช้ 0 ครั้ง</span>
@@ -143,9 +139,12 @@ export const StatusColorRulesModal: React.FC = () => {
             </div>
 
             <div className="bg-white border border-emerald-200 rounded-xl p-3">
-              <div className="text-xs font-bold text-emerald-800">🟢 สีเขียว (พร้อมวนใช้)</div>
+              <div className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>สีเขียว (พร้อมวนใช้)</span>
+              </div>
               <div className="mt-1 flex items-baseline justify-between font-mono tabular-nums">
-                <span className="text-xl font-extrabold text-emerald-700">
+                <span className="text-xl font-bold text-emerald-700">
                   {livePreview.greenReady}
                 </span>
                 <span className="text-[11px] text-emerald-700">
@@ -155,9 +154,12 @@ export const StatusColorRulesModal: React.FC = () => {
             </div>
 
             <div className="bg-white border border-amber-200 rounded-xl p-3">
-              <div className="text-xs font-bold text-amber-800">🟡 สีเหลือง (เฝ้าระวัง)</div>
+              <div className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                <span>สีเหลือง (เฝ้าระวัง)</span>
+              </div>
               <div className="mt-1 flex items-baseline justify-between font-mono tabular-nums">
-                <span className="text-xl font-extrabold text-amber-700">
+                <span className="text-xl font-bold text-amber-700">
                   {livePreview.yellowWarning}
                 </span>
                 <span className="text-[11px] text-amber-800">
@@ -167,9 +169,12 @@ export const StatusColorRulesModal: React.FC = () => {
             </div>
 
             <div className="bg-white border border-rose-200 rounded-xl p-3">
-              <div className="text-xs font-bold text-rose-800">🔴 สีแดง (ห้ามใช้ซ้ำ)</div>
+              <div className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-rose-600" />
+                <span>สีแดง (ห้ามใช้ซ้ำ)</span>
+              </div>
               <div className="mt-1 flex items-baseline justify-between font-mono tabular-nums">
-                <span className="text-xl font-extrabold text-rose-700">
+                <span className="text-xl font-bold text-rose-700">
                   {livePreview.redCooldown}
                 </span>
                 <span className="text-[11px] text-rose-700">
@@ -181,11 +186,12 @@ export const StatusColorRulesModal: React.FC = () => {
         </div>
 
         {/* =================================================================
-            2. QUICK PRESETS (ชุดค่าสำเร็จรูป 1 คลิก)
+            2. QUICK PRESETS
            ================================================================= */}
         <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-          <span className="text-xs font-bold text-slate-700">
-            ⚡ เลือกชุดเกณฑ์มาตรฐานด่วน:
+          <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <span>เลือกชุดเกณฑ์มาตรฐานด่วน:</span>
           </span>
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -201,7 +207,7 @@ export const StatusColorRulesModal: React.FC = () => {
               }
               className="px-3 py-1.5 text-xs font-semibold bg-white hover:bg-indigo-50 text-slate-800 border border-slate-200 rounded-lg transition-colors cursor-pointer"
             >
-              ⭐ มาตรฐาน (แดง &lt;14วัน · เขียว ≥21วัน · เตือน ≥3ครั้ง)
+              มาตรฐาน (แดง &lt;14วัน · เขียว ≥21วัน · เตือน ≥3ครั้ง)
             </button>
             <button
               type="button"
@@ -214,9 +220,10 @@ export const StatusColorRulesModal: React.FC = () => {
                   maxTotalUsageCount: 5,
                 })
               }
-              className="px-3 py-1.5 text-xs font-semibold bg-white hover:bg-indigo-50 text-slate-800 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white hover:bg-indigo-50 text-slate-800 border border-slate-200 rounded-lg transition-colors cursor-pointer"
             >
-              🛡️ เข้มงวดกันคลิปช้ำ (แดง &lt;30วัน · เขียว ≥45วัน · เตือน ≥2ครั้ง)
+              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+              <span>เข้มงวดกันคลิปช้ำ (แดง &lt;30วัน · เขียว ≥45วัน)</span>
             </button>
             <button
               type="button"
@@ -229,23 +236,25 @@ export const StatusColorRulesModal: React.FC = () => {
                   maxTotalUsageCount: 12,
                 })
               }
-              className="px-3 py-1.5 text-xs font-semibold bg-white hover:bg-indigo-50 text-slate-800 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white hover:bg-indigo-50 text-slate-800 border border-slate-200 rounded-lg transition-colors cursor-pointer"
             >
-              🚀 หมุนเวียนไว (แดง &lt;7วัน · เขียว ≥7วัน · เตือน ≥4ครั้ง)
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>หมุนเวียนไว (แดง &lt;7วัน · เขียว ≥7วัน)</span>
             </button>
           </div>
         </div>
 
         {/* =================================================================
-            3. FOUR COLOR RULE CONFIGURATOR CARDS (ตั้งค่าตัวเลขของแต่ละสีโดยตรง)
+            3. FOUR COLOR RULE CONFIGURATOR CARDS
            ================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* CARD 1: 🔵 BLUE */}
+          {/* CARD 1: BLUE */}
           <div className="bg-sky-50/50 border border-sky-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-sky-950">
-                  🔵 1. เกณฑ์สีฟ้า (คลิปใหม่แกะกล่อง)
+                <h3 className="text-sm font-bold text-sky-950 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-sky-600" />
+                  <span>1. เกณฑ์สีฟ้า (คลิปใหม่แกะกล่อง)</span>
                 </h3>
                 <span className="text-xs font-mono font-bold text-sky-700 bg-white px-2 py-0.5 rounded border border-sky-200">
                   อัตโนมัติ
@@ -261,12 +270,13 @@ export const StatusColorRulesModal: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD 2: 🟢 GREEN */}
+          {/* CARD 2: GREEN */}
           <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-emerald-950">
-                  🟢 2. เกณฑ์สีเขียว (พักจนสดพร้อมวนใช้)
+                <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>2. เกณฑ์สีเขียว (พักจนสดพร้อมวนใช้)</span>
                 </h3>
                 <span className="text-xs font-mono font-bold text-emerald-700 bg-white px-2 py-0.5 rounded border border-emerald-200">
                   พร้อมหยิบผสม
@@ -279,7 +289,7 @@ export const StatusColorRulesModal: React.FC = () => {
 
             <div className="bg-white border border-emerald-200/80 rounded-xl p-3 space-y-2">
               <label className="block text-xs font-bold text-slate-800">
-                ต้องพักอย่างน้อยกี่วันถึงขึ้น 🟢 สีเขียว (วัน):
+                ต้องพักอย่างน้อยกี่วันถึงขึ้นสีเขียว (วัน):
               </label>
               <div className="flex items-center gap-3">
                 <input
@@ -288,7 +298,7 @@ export const StatusColorRulesModal: React.FC = () => {
                   max={365}
                   value={greenReadyDays}
                   onChange={(e) => setGreenReadyDays(Number(e.target.value))}
-                  className="w-28 px-3 py-1.5 text-sm font-mono font-extrabold text-emerald-800 bg-emerald-50/50 border border-emerald-300 rounded-lg focus:outline-none focus:border-emerald-600"
+                  className="w-28 px-3 py-1.5 text-sm font-mono font-bold text-emerald-800 bg-emerald-50/50 border border-emerald-300 rounded-lg focus:outline-none focus:border-emerald-600"
                 />
                 <span className="text-xs text-slate-600">
                   วันขึ้นไป (และใช้ซ้ำไม่ถึงเกณฑ์สีเหลือง)
@@ -297,12 +307,13 @@ export const StatusColorRulesModal: React.FC = () => {
             </div>
           </div>
 
-          {/* CARD 3: 🟡 YELLOW */}
+          {/* CARD 3: YELLOW */}
           <div className="bg-amber-50/50 border border-amber-200 rounded-2xl p-4 space-y-3">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-amber-950">
-                  🟡 3. เกณฑ์สีเหลือง (เฝ้าระวังเริ่มใช้บ่อย / เพิ่งพ้นพัก)
+                <h3 className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span>3. เกณฑ์สีเหลือง (เฝ้าระวังเริ่มใช้บ่อย / เพิ่งพ้นพัก)</span>
                 </h3>
                 <span className="text-xs font-mono font-bold text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200">
                   แจ้งเตือนใช้ถี่
@@ -325,7 +336,7 @@ export const StatusColorRulesModal: React.FC = () => {
                     max={20}
                     value={maxUsagePer90Days}
                     onChange={(e) => setMaxUsagePer90Days(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 text-sm font-mono font-extrabold text-amber-900 bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-1.5 text-sm font-mono font-bold text-amber-900 bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none focus:border-amber-600"
                   />
                 </div>
 
@@ -339,7 +350,7 @@ export const StatusColorRulesModal: React.FC = () => {
                     max={50}
                     value={yellowTotalUsageCount}
                     onChange={(e) => setYellowTotalUsageCount(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 text-sm font-mono font-extrabold text-amber-900 bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none focus:border-amber-600"
+                    className="w-full px-3 py-1.5 text-sm font-mono font-bold text-amber-900 bg-amber-50/50 border border-amber-300 rounded-lg focus:outline-none focus:border-amber-600"
                   />
                 </div>
               </div>
@@ -347,34 +358,35 @@ export const StatusColorRulesModal: React.FC = () => {
               <div className="text-[11px] font-mono text-amber-900 pt-1 border-t border-amber-100">
                 {draftSettings.greenReadyDays > draftSettings.cooldownDays ? (
                   <span>
-                    💡 ช่วงวันพักสีเหลืองอัตโนมัติ: พักได้{' '}
+                    ช่วงวันพักสีเหลืองอัตโนมัติ: พักได้{' '}
                     <strong>
                       {draftSettings.cooldownDays} ถึง {draftSettings.greenReadyDays - 1} วัน
                     </strong>{' '}
-                    = 🟡 สีเหลือง
+                    = สีเหลือง
                   </span>
                 ) : (
                   <span>
-                    💡 วันพักสีเขียวเท่ากับสีแดง ({draftSettings.cooldownDays} วัน) จึงวัดสีเหลืองจากจำนวนครั้งที่ใช้ซ้ำอย่างเดียว
+                    วันพักสีเขียวเท่ากับสีแดง ({draftSettings.cooldownDays} วัน) จึงวัดสีเหลืองจากจำนวนครั้งที่ใช้ซ้ำอย่างเดียว
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* CARD 4: 🔴 RED */}
+          {/* CARD 4: RED */}
           <div className="bg-rose-50/50 border border-rose-200 rounded-2xl p-4 space-y-3">
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-rose-950">
-                  🔴 4. เกณฑ์สีแดง (ห้ามใช้ซ้ำ / ติดระยะพักคูลดาวน์)
+                <h3 className="text-sm font-bold text-rose-950 flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-rose-600" />
+                  <span>4. เกณฑ์สีแดง (เพิ่งใช้ยังไม่พ้นพัก / ช้ำเพดาน)</span>
                 </h3>
-                <span className="text-xs font-mono font-bold text-rose-700 bg-white px-2 py-0.5 rounded border border-rose-200">
-                  ล็อกห้ามซ้ำ
+                <span className="text-xs font-mono font-bold text-rose-800 bg-white px-2 py-0.5 rounded border border-rose-200">
+                  ห้ามซ้ำเด็ดขาด
                 </span>
               </div>
               <p className="text-xs text-slate-600">
-                ฟุตเทจจะขึ้นสีแดงและถูกแยกออกจากตะกร้าพร้อมใช้ เมื่อเพิ่งถูกใช้งานไปไม่นาน หรือถูกใช้ซ้ำจนครบเพดานสูงสุดแล้ว
+                ระบบจะบล็อกไม่ให้สุ่มหรือเลือกฟุตเทจสีแดงไปใส่ในคลิปหลัก 5 อันดับอย่างเด็ดขาดเพื่อกันคลิปช้ำ
               </p>
             </div>
 
@@ -396,7 +408,7 @@ export const StatusColorRulesModal: React.FC = () => {
                         setGreenReadyDays(val);
                       }
                     }}
-                    className="w-full px-3 py-1.5 text-sm font-mono font-extrabold text-rose-800 bg-rose-50/50 border border-rose-300 rounded-lg focus:outline-none focus:border-rose-600"
+                    className="w-full px-3 py-1.5 text-sm font-mono font-bold text-rose-800 bg-rose-50/50 border border-rose-300 rounded-lg focus:outline-none focus:border-rose-600"
                   />
                 </div>
 
@@ -410,14 +422,17 @@ export const StatusColorRulesModal: React.FC = () => {
                     max={100}
                     value={maxTotalUsageCount}
                     onChange={(e) => setMaxTotalUsageCount(Number(e.target.value))}
-                    className="w-full px-3 py-1.5 text-sm font-mono font-extrabold text-rose-800 bg-rose-50/50 border border-rose-300 rounded-lg focus:outline-none focus:border-rose-600"
+                    className="w-full px-3 py-1.5 text-sm font-mono font-bold text-rose-800 bg-rose-50/50 border border-rose-300 rounded-lg focus:outline-none focus:border-rose-600"
                   />
                 </div>
               </div>
 
-              <div className="text-[11px] font-mono text-rose-800 pt-1 border-t border-rose-100">
-                🔒 เพิ่งใช้ภายใน <strong>&lt; {draftSettings.cooldownDays} วัน</strong> หรือใช้ครบ{' '}
-                <strong>{draftSettings.maxTotalUsageCount} ครั้ง</strong> = 🔴 สีแดงทันที
+              <div className="text-[11px] font-mono text-rose-800 pt-1 border-t border-rose-100 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                <span>
+                  เพิ่งใช้ภายใน <strong>&lt; {draftSettings.cooldownDays} วัน</strong> หรือใช้ครบ{' '}
+                  <strong>{draftSettings.maxTotalUsageCount} ครั้ง</strong> = สีแดงทันที
+                </span>
               </div>
             </div>
           </div>
@@ -438,8 +453,9 @@ export const StatusColorRulesModal: React.FC = () => {
 
           <div className="flex items-center gap-3">
             {savedToast && (
-              <span className="text-xs font-bold text-emerald-700">
-                ✅ บันทึกเกณฑ์สีทั้ง 4 สถานะเรียบร้อยแล้ว!
+              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5" />
+                <span>บันทึกเกณฑ์สีทั้ง 4 สถานะเรียบร้อยแล้ว</span>
               </span>
             )}
             <button
@@ -451,10 +467,10 @@ export const StatusColorRulesModal: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>บันทึกเกณฑ์สีสถานะ 🔵🟢🟡🔴</span>
+              <span>บันทึกเกณฑ์สีใหม่</span>
             </button>
           </div>
         </div>

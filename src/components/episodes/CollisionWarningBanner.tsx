@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   AlertCircle,
   AlertTriangle,
-  CheckCircle2,
+  AlertOctagon,
   GitMerge,
   ChevronDown,
   ChevronUp,
   Layers,
-  ArrowRight,
   Sparkles,
 } from 'lucide-react';
-import { EpisodeValidationReport, EpisodeSimilarityMatch } from '../../utils/collisionDetector';
+import { EpisodeValidationReport } from '../../utils/collisionDetector';
 
 interface CollisionWarningBannerProps {
   report: EpisodeValidationReport;
   selectedCount: number;
 }
+
+const SLIDE_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
 export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
   report,
@@ -23,51 +25,30 @@ export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
 }) => {
   const [isComparisonExpanded, setIsComparisonExpanded] = useState(true);
 
-  if (selectedCount === 0) {
-    return (
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-4">
-        <div className="text-xs text-slate-600">
-          เลือกฟุตเทจเข้าสู่ช่องจัดอันดับ 5, 4, 3, 2, 1 หรือคลิกปุ่ม{' '}
-          <span className="font-semibold text-slate-900">"สูตรผสมอัตโนมัติ (Smart Mix Recipe)"</span>{' '}
-          ด้านบนเพื่อให้ระบบดึงฟุตเทจสดใหม่ที่ไม่เคยจับคู่ซ้ำกันมาก่อน
-        </div>
-        <span className="text-xs font-mono tabular-nums text-slate-500 shrink-0">
-          เลือกแล้ว {selectedCount}/5 อันดับ
-        </span>
-      </div>
-    );
-  }
-
   const topMatch = report.topSimilarityMatch;
-  const hasCriticalSimilarity = topMatch && topMatch.similarityPercentage >= 60;
+  const hasCriticalSimilarity = Boolean(
+    topMatch && topMatch.similarityPercentage >= 60
+  );
 
   const hasIssues =
-    report.cooldownViolations.length > 0 ||
-    report.pairwiseCollisions.length > 0 ||
-    report.velocityWarnings.length > 0 ||
-    hasCriticalSimilarity;
-
-  if (!hasIssues) {
-    return (
-      <div className="bg-emerald-50/80 border border-emerald-300 rounded-xl p-4 flex items-center justify-between gap-4 shadow-2xs">
-        <div className="flex items-center gap-2.5 text-xs text-emerald-950">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <div>
-            <span className="font-bold">Smart Guard & ความสดใหม่ผ่าน 100%: </span>
-            <span>
-              ไม่มีฟุตเทจติด RECENT_COOLDOWN, ดัชนีความซ้ำกับตอนเก่าต่ำมาก (&lt; 60%) และไม่เคยจับคู่ซ้ำจนผิดเกณฑ์
-            </span>
-          </div>
-        </div>
-        <span className="text-xs font-mono tabular-nums font-bold text-emerald-800 shrink-0">
-          เลือกแล้ว {selectedCount}/5 อันดับ
-        </span>
-      </div>
-    );
-  }
+    selectedCount > 0 &&
+    (report.cooldownViolations.length > 0 ||
+      report.pairwiseCollisions.length > 0 ||
+      report.velocityWarnings.length > 0 ||
+      hasCriticalSimilarity);
 
   return (
-    <div className="space-y-3">
+    <AnimatePresence initial={false}>
+      {hasIssues && (
+        <motion.div
+          key="collision-warning-banner"
+          initial={{ height: 0, opacity: 0, y: -6 }}
+          animate={{ height: 'auto', opacity: 1, y: 0 }}
+          exit={{ height: 0, opacity: 0, y: -6 }}
+          transition={{ duration: 0.28, ease: SLIDE_EASE }}
+          className="overflow-hidden"
+        >
+          <div className="space-y-3">
       {/* 1. EPISODE SIMILARITY INDEX CARD (Highlight Box) */}
       {topMatch && topMatch.similarityPercentage >= 60 && (
         <div
@@ -91,11 +72,13 @@ export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
                     : 'bg-amber-100 text-amber-800'
                 }`}
               >
-                {topMatch.severity === 'EXACT_DUPLICATE_100'
-                  ? '🚨'
-                  : topMatch.severity === 'REORDERED_DUPLICATE_100'
-                  ? '⚠️'
-                  : '🟡'}
+                {topMatch.severity === 'EXACT_DUPLICATE_100' ? (
+                  <AlertOctagon className="w-5 h-5 text-white" />
+                ) : topMatch.severity === 'REORDERED_DUPLICATE_100' ? (
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-amber-700" />
+                )}
               </div>
 
               <div>
@@ -189,8 +172,17 @@ export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
           </div>
 
           {/* Side-by-Side Rank Comparison Table */}
-          {isComparisonExpanded && (
-            <div className="mt-3.5 pt-3 border-t border-slate-200/60 overflow-x-auto">
+          <AnimatePresence initial={false}>
+            {isComparisonExpanded && (
+              <motion.div
+                key="comparison-table"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.24, ease: SLIDE_EASE }}
+                className="overflow-hidden"
+              >
+                <div className="mt-3.5 pt-3 border-t border-slate-200/60 overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200/80 pb-1">
@@ -246,8 +238,10 @@ export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
                   </span>
                 </div>
               )}
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -325,6 +319,9 @@ export const CollisionWarningBanner: React.FC<CollisionWarningBannerProps> = ({
           </div>
         </div>
       )}
-    </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

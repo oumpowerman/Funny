@@ -1,6 +1,6 @@
 {
-  "summary":  "แผนการปรับปรุงโครงสร้างความสูงคงที่ (85vh) และการเลื่อนหน้าจอแยกอิสระรายคอลัมน์ในหน้าต่างจัดการโครงสร้างหมวดหมู่ 3 ชั้น (ThreeTierCategoryManagerModal)",
-  "updatedAt":  "2026-10-28T16:53:58.561692146Z",
+  "summary":  "แผนปรับปรุง FootageTraceabilityModal และส่วนประกอบทั่วทั้งระบบ ให้ใช้ Lucide React SVG Icons ระดับมืออาชีพแทนอิโมจิทั่วไป พร้อมสไตล์ป้ายโปร่งแสง (Translucent Tinted Badges) ขอบเส้นบางประณีต และพับเก็บแผงเลือกหมวดหมู่ให้คลีนที่สุด",
+  "updatedAt":  "2026-10-28T19:27:29.876451398Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

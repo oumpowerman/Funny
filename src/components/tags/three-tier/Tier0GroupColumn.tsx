@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, X, Edit2, Trash2, ChevronRight, FolderPlus } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, ChevronRight, Folder, FolderPlus } from 'lucide-react';
 import { CategoryGroup, CategoryTag } from '../../../types/tag.types';
 import { EMOJI_OPTIONS } from './useThreeTierCategoryState';
 
@@ -192,7 +192,11 @@ export const Tier0GroupColumn: React.FC<Tier0GroupColumnProps> = ({
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base shrink-0">{group.icon || '📁'}</span>
+                    {!group.icon || group.icon === '📁' ? (
+                      <Folder className="w-4 h-4 shrink-0 opacity-80" />
+                    ) : (
+                      <span className="text-base shrink-0">{group.icon}</span>
+                    )}
                     <div className="min-w-0">
                       <div className="text-xs truncate flex items-center gap-1.5">
                         <span>{group.name}</span>

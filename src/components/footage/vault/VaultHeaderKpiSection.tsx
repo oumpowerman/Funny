@@ -7,6 +7,12 @@ import {
   Plus,
   RotateCcw,
   Scissors,
+  Film,
+  Sliders,
+  CheckCircle2,
+  Sparkles,
+  AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { CooldownStatus } from '../../../types/footage.types';
 import { SystemSettings } from '../../../types/tag.types';
@@ -52,8 +58,9 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
     <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-lg sm:text-xl font-extrabold text-slate-900">
-            🎞️ คลังฟุตเทจ (Footage Vault Overview)
+          <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+            <Film className="w-5 h-5 text-indigo-600 shrink-0" />
+            <span>คลังฟุตเทจ (Footage Vault Overview)</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
             สำรวจสต็อกคลิปแบบ 3 ชั้น (กลุ่มหมวดหมู่ ➔ หมวดหลัก ➔ หมวดย่อย) พร้อมพื้นที่พักสำหรับคลิปที่บันทึกด่วนรอจัดหมวดหมู่
@@ -66,7 +73,8 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
             onClick={onOpenStatusRuleModal}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-colors cursor-pointer"
           >
-            <span>🎨 ตั้งค่าเกณฑ์สี 🔵🟢🟡🔴</span>
+            <Sliders className="w-3.5 h-3.5 text-indigo-600" />
+            <span>ตั้งค่าเกณฑ์สีสถานะ</span>
           </button>
 
           <button
@@ -123,7 +131,7 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm sm:text-base font-bold text-slate-900">
-                📥 พื้นที่พักรอจัดหมวดหมู่ (Staging Area)
+                พื้นที่พักรอจัดหมวดหมู่ (Staging Area)
               </span>
 
               <span
@@ -309,11 +317,12 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           }`}
         >
           <div
-            className={`text-xs font-medium truncate ${
+            className={`text-xs font-medium truncate flex items-center gap-1.5 ${
               statusFilter === 'READY_FRESH' ? 'text-emerald-100' : 'text-emerald-800'
             }`}
           >
-            🟢 สีเขียว: พร้อมวนใช้ (พัก ≥ {settings.greenReadyDays ?? 21} วัน)
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            <span>พร้อมวนใช้ (พัก ≥ {settings.greenReadyDays ?? 21} วัน)</span>
           </div>
           <div className="mt-1 flex items-baseline justify-between">
             <AnimatedMetricNumber
@@ -327,7 +336,7 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
                 statusFilter === 'READY_FRESH' ? 'text-emerald-100' : 'text-emerald-700'
               }`}
             >
-              <span>รวมพร้อมใช้ (🔵+🟢)</span>
+              <span>รวมพร้อมใช้</span>
               <AnimatedMetricNumber value={vaultMetrics.usable} suffix=" คลิป" />
             </span>
           </div>
@@ -348,11 +357,12 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           }`}
         >
           <div
-            className={`text-xs font-medium truncate ${
+            className={`text-xs font-medium truncate flex items-center gap-1.5 ${
               statusFilter === 'NEW_UNTOUCHED' ? 'text-sky-100' : 'text-sky-800'
             }`}
           >
-            🔵 สีฟ้า: คลิปใหม่แกะกล่อง (ใช้ 0 ครั้ง)
+            <Sparkles className="w-3.5 h-3.5 shrink-0" />
+            <span>คลิปใหม่แกะกล่อง (ใช้ 0 ครั้ง)</span>
           </div>
           <div className="mt-1 flex items-baseline justify-between">
             <AnimatedMetricNumber
@@ -386,11 +396,12 @@ export const VaultHeaderKpiSection: React.FC<VaultHeaderKpiSectionProps> = ({
           }`}
         >
           <div
-            className={`text-xs font-medium truncate ${
+            className={`text-xs font-medium truncate flex items-center gap-1.5 ${
               statusFilter === 'RECENT_COOLDOWN' ? 'text-rose-100' : 'text-rose-800'
             }`}
           >
-            🟡/🔴 เฝ้าระวัง & พักคูลดาวน์ (&lt;{settings.cooldownDays}วัน / ≥{settings.maxUsagePer90Days}ครั้ง)
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>เฝ้าระวัง & พักคูลดาวน์ (&lt;{settings.cooldownDays}วัน / ≥{settings.maxUsagePer90Days}ครั้ง)</span>
           </div>
           <div className="mt-1 flex items-baseline justify-between">
             <AnimatedMetricNumber

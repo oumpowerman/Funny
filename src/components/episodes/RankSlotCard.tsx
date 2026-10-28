@@ -7,6 +7,11 @@ import {
   History,
   MessageSquare,
   Trash2,
+  Video,
+  Scissors,
+  Star,
+  Mic,
+  Clock,
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import { EpisodeRankingSlot } from '../../types/episode.types';
@@ -140,10 +145,18 @@ export const RankSlotCard: React.FC<RankSlotCardProps> = ({
                 <div className="flex items-center gap-1.5 text-xs font-mono">
                   <span className="font-extrabold text-slate-900">{footage.id}</span>
                   <span className="text-slate-300">·</span>
-                  <span className="text-slate-500 text-[11px]">
-                    {footage.ingestionFlow === 'DIRECT_1_TO_1'
-                      ? '📹 1:1'
-                      : `✂️ ${footage.sourceId}`}
+                  <span className="text-slate-500 text-[11px] inline-flex items-center gap-1">
+                    {footage.ingestionFlow === 'DIRECT_1_TO_1' ? (
+                      <>
+                        <Video className="w-3 h-3 text-indigo-500" />
+                        <span>1:1</span>
+                      </>
+                    ) : (
+                      <>
+                        <Scissors className="w-3 h-3 text-sky-500" />
+                        <span>{footage.sourceId}</span>
+                      </>
+                    )}
                   </span>
                 </div>
 
@@ -167,11 +180,13 @@ export const RankSlotCard: React.FC<RankSlotCardProps> = ({
                   ))}
                 </div>
 
-                <span className="text-[11px] font-mono text-slate-500">
-                  ⏳{' '}
-                  {footage.daysSinceLastUsed !== null
-                    ? `พัก ${footage.daysSinceLastUsed} วัน`
-                    : 'ฟุตใหม่แกะกล่อง'}
+                <span className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-500">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span>
+                    {footage.daysSinceLastUsed !== null
+                      ? `พัก ${footage.daysSinceLastUsed} วัน`
+                      : 'ฟุตใหม่แกะกล่อง'}
+                  </span>
                 </span>
               </div>
             </div>
@@ -181,9 +196,14 @@ export const RankSlotCard: React.FC<RankSlotCardProps> = ({
                 ว่าง — ลากฟุตเทจมาวางที่นี่ หรือกดปุ่ม [{slot.rank}] จากคลังขวา
               </div>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                {slot.rank === 1
-                  ? '🌟 อันดับ 1 แนะนำให้ใช้ช็อตที่พีคและฮาที่สุดของคลิป'
-                  : `เลือกฟุตเทจสำหรับอันดับที่ ${slot.rank}`}
+                {slot.rank === 1 ? (
+                  <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
+                    <Star className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span>อันดับ 1 แนะนำให้ใช้ช็อตที่พีคและฮาที่สุดของคลิป</span>
+                  </span>
+                ) : (
+                  `เลือกฟุตเทจสำหรับอันดับที่ ${slot.rank}`
+                )}
               </p>
             </div>
           )}
@@ -225,8 +245,8 @@ export const RankSlotCard: React.FC<RankSlotCardProps> = ({
                 }`}
                 title="เปิด/ปิดช่องเขียนบทพากย์มาสคอตของอันดับนี้"
               >
-                <MessageSquare className="w-3 h-3" />
-                <span>🎙️ บทพากย์</span>
+                <Mic className="w-3 h-3" />
+                <span>บทพากย์</span>
               </button>
 
               <button
@@ -264,8 +284,9 @@ export const RankSlotCard: React.FC<RankSlotCardProps> = ({
           >
             <div className="mt-2.5 pt-2.5 border-t border-slate-100">
               <label className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 mb-1">
+                <Mic className="w-3.5 h-3.5 text-amber-600" />
                 <span>
-                  🎙️ บทพากย์มาสคอต ({settings.defaultMascotName}) สำหรับอันดับที่{' '}
+                  บทพากย์มาสคอต ({settings.defaultMascotName}) สำหรับอันดับที่{' '}
                   {slot.rank}:
                 </span>
               </label>

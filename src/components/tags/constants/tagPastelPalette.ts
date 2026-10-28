@@ -186,7 +186,7 @@ export const TAG_GROUP_OPTIONS: {
 export const STATUS_RULE_PRESETS = [
   {
     id: 'strict',
-    label: '🛡️ เข้มงวด (เน้นความสดใหม่)',
+    label: 'เข้มงวด (เน้นความสดใหม่)',
     desc: 'พักขั้นต่ำ 21 วัน · พร้อมเขียว 30 วัน · เพดาน 6 ครั้ง',
     values: {
       cooldownDays: 21,
@@ -198,7 +198,7 @@ export const STATUS_RULE_PRESETS = [
   },
   {
     id: 'balanced',
-    label: '⚖️ สมดุลแนะนำ (ค่ามาตรฐาน)',
+    label: 'สมดุลแนะนำ (ค่ามาตรฐาน)',
     desc: 'พักขั้นต่ำ 14 วัน · พร้อมเขียว 21 วัน · เพดาน 8 ครั้ง',
     values: {
       cooldownDays: 14,
@@ -210,7 +210,7 @@ export const STATUS_RULE_PRESETS = [
   },
   {
     id: 'flexible',
-    label: '⚡ ยืดหยุ่น (หมุนฟุตไว)',
+    label: 'ยืดหยุ่น (หมุนฟุตไว)',
     desc: 'พักขั้นต่ำ 7 วัน · พร้อมเขียว 14 วัน · เพดาน 12 ครั้ง',
     values: {
       cooldownDays: 7,

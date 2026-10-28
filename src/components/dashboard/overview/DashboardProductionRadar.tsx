@@ -1,6 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, Rocket } from 'lucide-react';
+import {
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Plus,
+  Rocket,
+  Sparkles,
+  Zap,
+} from 'lucide-react';
 import { DashboardProductionRadarData } from './dashboard.types';
 
 interface DashboardProductionRadarProps {
@@ -50,7 +58,7 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
             <div className="pt-2">
@@ -58,8 +66,9 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                 {/* Radar 1: Ready-to-Produce */}
                 <div className="bg-white border border-emerald-200/90 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-emerald-950">
-                      🚀 หมวดพร้อมจัด 5 อันดับทันที
+                    <span className="text-xs font-bold text-emerald-950 inline-flex items-center gap-1.5">
+                      <Rocket className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>หมวดพร้อมจัด 5 อันดับทันที</span>
                     </span>
                     <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
                       {productionRadar.readyCategories.length} หมวด
@@ -85,9 +94,10 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                         <button
                           type="button"
                           onClick={() => launchEpisodeBuilderForCategory(stat.tag.id)}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0 cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0 cursor-pointer"
                         >
-                          ⚡ จัด EP
+                          <Zap className="w-3 h-3" />
+                          <span>จัด EP</span>
                         </button>
                       </div>
                     ))}
@@ -97,8 +107,9 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                 {/* Radar 2: Almost Ready */}
                 <div className="bg-white border border-amber-200/90 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-amber-950">
-                      ⏳ หมวดใกล้ครบ 5 ฟุต (ขาด 1–2 ฟุต)
+                    <span className="text-xs font-bold text-amber-950 inline-flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      <span>หมวดใกล้ครบ 5 ฟุต (ขาด 1–2 ฟุต)</span>
                     </span>
                     <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
                       {productionRadar.almostReadyCategories.length} หมวด
@@ -126,9 +137,10 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                           <button
                             type="button"
                             onClick={() => setIsDirectFootageModalOpen(true)}
-                            className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold shrink-0 cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold shrink-0 cursor-pointer"
                           >
-                            + เติมฟุต
+                            <Plus className="w-3 h-3" />
+                            <span>เติมฟุต</span>
                           </button>
                         </div>
                       ))
@@ -139,8 +151,9 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                 {/* Radar 3: High-ROI Footages */}
                 <div className="bg-white border border-sky-200/90 rounded-2xl p-3.5 space-y-2.5 shadow-2xs">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-sky-950">
-                      ✨ ชี้เป้าฟุตคุ้มค่าพร้อมใช้
+                    <span className="text-xs font-bold text-sky-950 inline-flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                      <span>ชี้เป้าฟุตคุ้มค่าพร้อมใช้</span>
                     </span>
                     <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-sky-50 text-sky-800 border border-sky-200">
                       {productionRadar.topRoiFootages.length} รายการ
@@ -155,9 +168,11 @@ export const DashboardProductionRadar: React.FC<DashboardProductionRadarProps> =
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 truncate">
-                            <span>
-                              {ft.cooldownStatus === 'NEW_UNTOUCHED' ? '🔵' : '🟢'}
-                            </span>
+                            {ft.cooldownStatus === 'NEW_UNTOUCHED' ? (
+                              <Sparkles className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                            ) : (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            )}
                             <span className="font-mono text-indigo-700">{ft.id}</span>
                             <span className="truncate">{ft.title}</span>
                           </div>

@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Plus,
-  FolderTree,
-  Search,
-  X,
-  Layers,
-  Settings,
   ChevronDown,
   ChevronRight,
+  Folder,
+  FolderTree,
   Inbox,
   Check,
+  Layers,
+  Plus,
+  Search,
+  Settings,
+  X,
 } from 'lucide-react';
 import { useCMS } from '../../context/CMSContext';
 import {
@@ -315,7 +316,7 @@ export const CascadeCategorySelector: React.FC<CascadeCategorySelectorProps> = (
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-bold text-slate-900">
-                📥 พื้นที่พักรอจัดหมวดหมู่ (Staging Area)
+                พื้นที่พักรอจัดหมวดหมู่ (Staging Area)
               </span>
               {isCurrentlyInStaging ? (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold bg-amber-400/90 text-slate-950 rounded-md">
@@ -348,7 +349,7 @@ export const CascadeCategorySelector: React.FC<CascadeCategorySelectorProps> = (
           <span>
             {isCurrentlyInStaging
               ? '✓ เก็บในพื้นที่พักรอจัดหมวดหมู่'
-              : '📥 ย้ายไปพื้นที่พักรอจัดหมวดหมู่'}
+              : 'ย้ายไปพื้นที่พักรอจัดหมวดหมู่'}
           </span>
         </button>
       </div>
@@ -506,7 +507,11 @@ export const CascadeCategorySelector: React.FC<CascadeCategorySelectorProps> = (
                   }`}
                   title={cluster.hint}
                 >
-                  <span>{cluster.icon}</span>
+                  {cluster.id === 'ALL' || !cluster.icon || cluster.icon === '📁' ? (
+                    <Folder className="w-4 h-4 shrink-0 opacity-80" />
+                  ) : (
+                    <span>{cluster.icon}</span>
+                  )}
                   <span>{cluster.label}</span>
                   <span
                     className={`text-xs px-2 py-0.5 rounded-full font-mono tabular-nums ${
@@ -684,11 +689,11 @@ export const CascadeCategorySelector: React.FC<CascadeCategorySelectorProps> = (
                           onChange={(e) => setNewSubType(e.target.value as EntitySubtype)}
                           className="bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 focus:outline-hidden"
                         >
-                          <option value="PERSON">👤 บุคคล/สตรีมเมอร์</option>
-                          <option value="ANIMAL">🐾 สัตว์</option>
-                          <option value="TOPIC">🎯 หัวข้อ/เกม/ประเด็น</option>
-                          <option value="ACTION">⚡ กิริยา/มุก</option>
-                          <option value="GENERAL">🏷️ ทั่วไป</option>
+                          <option value="PERSON">บุคคล / สตรีมเมอร์</option>
+                          <option value="ANIMAL">สัตว์</option>
+                          <option value="TOPIC">หัวข้อ / เกม / ประเด็น</option>
+                          <option value="ACTION">กิริยา / มุก</option>
+                          <option value="GENERAL">ทั่วไป</option>
                         </select>
 
                         <button

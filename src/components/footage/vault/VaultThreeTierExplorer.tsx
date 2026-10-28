@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronDown, FolderOpen, Layers, Rocket, RotateCcw } from 'lucide-react';
+import { ChevronDown, Folder, FolderOpen, Layers, Rocket, RotateCcw } from 'lucide-react';
 import { isStagingTagId } from '../../../services/seedData';
 import { ComputedFootage } from '../../../types/footage.types';
 import { MixRecipeId } from '../../../utils/collisionDetector';
@@ -185,9 +185,13 @@ export const VaultThreeTierExplorer: React.FC<VaultThreeTierExplorerProps> = ({
                           )}
                           <div className="relative z-10 flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-lg shrink-0">
-                                {groupItem.group.icon || '📁'}
-                              </span>
+                              {!groupItem.group.icon || groupItem.group.icon === '📁' ? (
+                                <Folder className="w-4 h-4 shrink-0 opacity-80" />
+                              ) : (
+                                <span className="text-base shrink-0">
+                                  {groupItem.group.icon}
+                                </span>
+                              )}
                               <span className="text-xs sm:text-sm font-bold truncate">
                                 {groupItem.group.name}
                               </span>
@@ -465,7 +469,7 @@ export const VaultThreeTierExplorer: React.FC<VaultThreeTierExplorerProps> = ({
 
                       {isStagingTagId(activeMainCategory.mainTag.id) ? (
                         <span className="inline-flex items-center px-3 py-2 text-xs font-bold text-amber-900 bg-amber-100 border border-amber-300 rounded-xl whitespace-nowrap shrink-0">
-                          📥 คลิกที่การ์ดคลิปเพื่อจัดเข้าหมวดหมู่จริงก่อนนำไปสร้าง EP
+                          คลิกที่การ์ดคลิปเพื่อจัดเข้าหมวดหมู่จริงก่อนนำไปสร้าง EP
                         </span>
                       ) : (
                         <button

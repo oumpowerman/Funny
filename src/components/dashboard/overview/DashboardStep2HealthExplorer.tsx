@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
+  AlertTriangle,
   ArrowRight,
   CheckCircle2,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   Film,
   Filter,
   Palette,
+  Repeat,
   Search,
   Settings2,
   Sparkles,
@@ -107,7 +109,8 @@ export const DashboardStep2HealthExplorer: React.FC<
           </span>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>🟢 สเต็ปที่ 2: ตรวจสอบความสด & กฎพักฟุต (Freshness Health)</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>สเต็ปที่ 2: ตรวจสอบความสด & กฎพักฟุต (Freshness Health)</span>
             </h2>
             <p className="text-xs text-slate-500">
               เช็กความพร้อมใช้งานตามเกณฑ์สี 4 สถานะ พร้อมค้นหาและตรวจสอบวันพักของแต่ละคลิป
@@ -176,7 +179,10 @@ export const DashboardStep2HealthExplorer: React.FC<
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold opacity-85">🎞️ คลังฟุตทั้งหมด</span>
+            <span className="text-xs font-bold opacity-85 inline-flex items-center gap-1.5">
+              <Film className="w-3.5 h-3.5 opacity-80" />
+              <span>คลังฟุตทั้งหมด</span>
+            </span>
             <Film className="w-4 h-4 opacity-70" />
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums">
@@ -206,7 +212,10 @@ export const DashboardStep2HealthExplorer: React.FC<
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold">🔵 ใหม่แกะกล่อง</span>
+            <span className="text-xs font-bold inline-flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+              <span>ใหม่แกะกล่อง</span>
+            </span>
             <Sparkles className="w-4 h-4 opacity-75" />
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums">
@@ -236,7 +245,10 @@ export const DashboardStep2HealthExplorer: React.FC<
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold">🟢 พักจนสดพร้อมใช้</span>
+            <span className="text-xs font-bold inline-flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>พักจนสดพร้อมใช้</span>
+            </span>
             <CheckCircle2 className="w-4 h-4 opacity-75" />
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums">
@@ -266,7 +278,10 @@ export const DashboardStep2HealthExplorer: React.FC<
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold">🟡 ใช้ถี่เฝ้าระวัง</span>
+            <span className="text-xs font-bold inline-flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span>ใช้ถี่เฝ้าระวัง</span>
+            </span>
             <TrendingUp className="w-4 h-4 opacity-75" />
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums">
@@ -296,7 +311,10 @@ export const DashboardStep2HealthExplorer: React.FC<
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold">🔴 ติดระยะพักห้ามซ้ำ</span>
+            <span className="text-xs font-bold inline-flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span>ติดระยะพักห้ามซ้ำ</span>
+            </span>
             <Clock className="w-4 h-4 opacity-75" />
           </div>
           <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums">
@@ -323,8 +341,9 @@ export const DashboardStep2HealthExplorer: React.FC<
               <Palette className="w-3.5 h-3.5 text-indigo-600" />
               <span>เกณฑ์สีสถานะ & ความคุ้มค่าคลัง</span>
             </span>
-            <span className="font-mono text-[11px] text-slate-600 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200/80 tabular-nums">
-              ♻️ ใช้แล้ว <strong className="text-indigo-700">{metrics.utilizationRate}%</strong> ({metrics.everUsedCount}/{metrics.total} ฟุต) · เฉลี่ย {metrics.avgUsagePerClip} ครั้ง/ฟุต
+            <span className="font-mono text-[11px] text-slate-600 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200/80 tabular-nums inline-flex items-center gap-1.5">
+              <Repeat className="w-3.5 h-3.5 text-indigo-600" />
+              <span>ใช้แล้ว <strong className="text-indigo-700">{metrics.utilizationRate}%</strong> ({metrics.everUsedCount}/{metrics.total} ฟุต) · เฉลี่ย {metrics.avgUsagePerClip} ครั้ง/ฟุต</span>
             </span>
           </div>
 
@@ -363,23 +382,35 @@ export const DashboardStep2HealthExplorer: React.FC<
               <div className="border-t border-slate-200/70 px-3.5 pb-3.5 pt-3 bg-white/80">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
                   <div className="p-2.5 rounded-xl bg-sky-50/70 border border-sky-200/80 flex items-center justify-between">
-                    <span className="font-bold text-sky-900">🔵 ฟ้า (ใหม่แกะกล่อง)</span>
+                    <span className="font-bold text-sky-900 inline-flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-sky-600" />
+                      <span>ฟ้า (ใหม่แกะกล่อง)</span>
+                    </span>
                     <span className="font-mono font-bold text-sky-700">ใช้ 0 ครั้ง</span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
-                    <span className="font-bold text-emerald-900">🟢 เขียว (พร้อมวนซ้ำ)</span>
+                    <span className="font-bold text-emerald-900 inline-flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>เขียว (พร้อมวนซ้ำ)</span>
+                    </span>
                     <span className="font-mono font-bold text-emerald-700">
                       พัก ≥{settings.greenReadyDays ?? 21} วัน
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
-                    <span className="font-bold text-amber-900">🟡 เหลือง (เฝ้าระวัง)</span>
+                    <span className="font-bold text-amber-900 inline-flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                      <span>เหลือง (เฝ้าระวัง)</span>
+                    </span>
                     <span className="font-mono font-bold text-amber-800">
                       ≥{settings.maxUsagePer90Days}ครั้ง/90วัน
                     </span>
                   </div>
                   <div className="p-2.5 rounded-xl bg-rose-50/70 border border-rose-200/80 flex items-center justify-between">
-                    <span className="font-bold text-rose-900">🔴 แดง (พักห้ามซ้ำ)</span>
+                    <span className="font-bold text-rose-900 inline-flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-rose-600" />
+                      <span>แดง (พักห้ามซ้ำ)</span>
+                    </span>
                     <span className="font-mono font-bold text-rose-700">
                       พัก &lt;{settings.cooldownDays} วัน
                     </span>
@@ -409,9 +440,8 @@ export const DashboardStep2HealthExplorer: React.FC<
                 </span>
               )}
               {activeStatusFilter !== 'ALL' && (
-                <span className="font-bold text-indigo-700">
-                  · {getStatusBadgeConfig(activeStatusFilter).emoji}{' '}
-                  {getStatusBadgeConfig(activeStatusFilter).label}
+                <span className="font-bold text-indigo-700 inline-flex items-center gap-1.5">
+                  · {getStatusBadgeConfig(activeStatusFilter).label}
                 </span>
               )}
               {activeFlowFilter !== 'ALL' && (

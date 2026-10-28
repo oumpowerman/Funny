@@ -6,16 +6,22 @@ import {
   ChevronDown,
   Menu,
   Zap,
+  LayoutDashboard,
+  Film,
+  ListOrdered,
+  Archive,
+  Clapperboard,
+  type LucideIcon,
 } from 'lucide-react';
 import { ActiveNavTab, useCMS } from '../../context/CMSContext';
 
-const TAB_LABELS: Record<ActiveNavTab, { emoji: string; title: string; subtitle: string }> = {
-  DASHBOARD: { emoji: '📊', title: 'ภาพรวมระบบ', subtitle: 'สถิติภาพรวม & KPIs ช่อง' },
-  E2E_PIPELINE: { emoji: '⚡', title: 'สายพานผลิต E2E', subtitle: 'Pipeline ควบคุมการผลิต' },
-  FOOTAGE_LIBRARY: { emoji: '🎞️', title: 'คลังฟุตเทจ', subtitle: 'Footage Vault (1:1 & 1:N)' },
-  SOURCE_SPLITTER: { emoji: '✂️', title: 'คลังไลฟ์ / คลิปยาว', subtitle: 'Live Source & Video Clipper' },
-  EPISODE_BUILDER: { emoji: '🏆', title: 'จัดคลิป 5 อันดับ', subtitle: 'Episode Builder & Cooldown' },
-  MASTER_ARCHIVE: { emoji: '📦', title: 'คลังคลิปหลัก Master', subtitle: 'ภาพรวมสัดส่วนหมวดหมู่ & ความคุ้มค่าฟุตเทจ' },
+const TAB_LABELS: Record<ActiveNavTab, { icon: LucideIcon; title: string; subtitle: string }> = {
+  DASHBOARD: { icon: LayoutDashboard, title: 'ภาพรวมระบบ', subtitle: 'สถิติภาพรวม & KPIs ช่อง' },
+  E2E_PIPELINE: { icon: Zap, title: 'สายพานผลิต E2E', subtitle: 'Pipeline ควบคุมการผลิต' },
+  FOOTAGE_LIBRARY: { icon: Film, title: 'คลังฟุตเทจ', subtitle: 'Footage Vault (1:1 & 1:N)' },
+  SOURCE_SPLITTER: { icon: Scissors, title: 'คลังไลฟ์ / คลิปยาว', subtitle: 'Live Source & Video Clipper' },
+  EPISODE_BUILDER: { icon: ListOrdered, title: 'จัดคลิป 5 อันดับ', subtitle: 'Episode Builder & Cooldown' },
+  MASTER_ARCHIVE: { icon: Archive, title: 'คลังคลิปหลัก Master', subtitle: 'ภาพรวมสัดส่วนหมวดหมู่ & ความคุ้มค่าฟุตเทจ' },
 };
 
 interface NavbarProps {
@@ -54,10 +60,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
   ).length;
 
   const currentTab = TAB_LABELS[activeTab] || {
-    emoji: '🎬',
+    icon: Clapperboard,
     title: 'ห้องทำงาน',
     subtitle: 'ระบบจัดการคอนเทนต์',
   };
+  const CurrentIcon = currentTab.icon;
 
   return (
     <header className="sticky top-0 z-20 w-full max-w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-6 py-2.5 flex items-center justify-between gap-4 shrink-0">
@@ -73,8 +80,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
           <span className="text-xs font-bold">เมนู</span>
         </button>
 
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 px-1">
-          <span className="text-base select-none shrink-0">{currentTab.emoji}</span>
+        <div className="flex items-center gap-2 min-w-0 flex-1 px-1">
+          <CurrentIcon className="w-4 h-4 text-indigo-600 shrink-0" />
           <span className="text-sm font-bold text-slate-900 truncate">
             {currentTab.title}
           </span>
@@ -105,9 +112,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenMobileMenu }) => {
       {/* DESKTOP & LAPTOP HEADER (md+): Focused 2-Zone Layout */}
       {/* Left Zone: Current Page Context */}
       <div className="hidden md:flex items-center gap-3 min-w-0">
-        <span className="text-xl select-none shrink-0" aria-hidden="true">
-          {currentTab.emoji}
-        </span>
+        <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
+          <CurrentIcon className="w-4 h-4" />
+        </div>
         <div className="flex items-baseline gap-2.5 min-w-0 overflow-hidden">
           <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
             {currentTab.title}

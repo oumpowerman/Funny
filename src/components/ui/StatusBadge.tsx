@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 import { CooldownStatus } from '../../types/footage.types';
 
 interface StatusBadgeProps {
@@ -25,20 +26,20 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   switch (status) {
     case 'NEW_UNTOUCHED':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-sky-700 whitespace-nowrap shrink-0">
-          <span>🔵</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-sky-50/80 border border-sky-200/90 text-sky-800 whitespace-nowrap shrink-0 shadow-2xs">
+          <Sparkles className="w-3.5 h-3.5 text-sky-600 shrink-0" />
           <span>{compact ? 'ใหม่แกะกล่อง' : 'ใหม่ · ยังไม่เคยใช้ (0 ครั้ง)'}</span>
         </span>
       );
 
     case 'READY_FRESH':
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 whitespace-nowrap shrink-0">
-          <span>🟢</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-emerald-50/80 border border-emerald-200/90 text-emerald-800 whitespace-nowrap shrink-0 shadow-2xs">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>
             {compact
               ? `พร้อมใช้ (พัก ${daysSinceLastUse ?? 0}วัน${
-                  totalUsageCount !== undefined ? ` · ใช้ ${totalUsageCount}x` : ''
+                  totalUsageCount !== undefined ? ` · ${totalUsageCount}x` : ''
                 })`
               : `พร้อมผสมใหม่ · พัก ${daysSinceLastUse ?? 0} วัน`}
           </span>
@@ -52,8 +53,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
         daysSinceLastUse < greenReadyDays;
 
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 whitespace-nowrap shrink-0">
-          <span>🟡</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-amber-50/80 border border-amber-200/90 text-amber-900 whitespace-nowrap shrink-0 shadow-2xs">
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
           <span>
             {isRestingTowardsGreen
               ? compact
@@ -75,8 +76,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
           ? Math.max(1, cooldownDays - daysSinceLastUse)
           : cooldownDays;
       return (
-        <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 whitespace-nowrap shrink-0">
-          <span>🔴</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-rose-50/80 border border-rose-200/90 text-rose-900 whitespace-nowrap shrink-0 shadow-2xs">
+          <Clock className="w-3.5 h-3.5 text-rose-600 shrink-0" />
           <span>
             {isMaxedOut
               ? compact

@@ -111,11 +111,11 @@ export const Tier2SubcategoryColumn: React.FC<Tier2SubcategoryColumnProps> = ({
                 onChange={(e) => setSubCatFormType(e.target.value as EntitySubtype)}
                 className="w-full bg-white border border-amber-200 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-hidden"
               >
-                <option value="PERSON">👤 บุคคล / สตรีมเมอร์ / ดารา</option>
-                <option value="ANIMAL">🐾 สัตว์</option>
-                <option value="TOPIC">🎯 หัวข้อ / เกม / คอนเซ็ปต์</option>
-                <option value="ACTION">⚡ กิริยา / มุก / ท่าทาง</option>
-                <option value="GENERAL">🏷️ ทั่วไป</option>
+                <option value="PERSON">บุคคล / สตรีมเมอร์ / ดารา</option>
+                <option value="ANIMAL">สัตว์</option>
+                <option value="TOPIC">หัวข้อ / เกม / คอนเซ็ปต์</option>
+                <option value="ACTION">กิริยา / มุก / ท่าทาง</option>
+                <option value="GENERAL">ทั่วไป</option>
               </select>
             </div>
 

@@ -21,6 +21,8 @@ export const EpisodeBuilderView: React.FC = () => {
     setIsThreeTierManagerOpen,
 
     nextEpisodeId,
+    activeBuilderStep,
+    setActiveBuilderStep,
     preselectNotice,
     setPreselectNotice,
     savedBannerMessage,
@@ -103,8 +105,8 @@ export const EpisodeBuilderView: React.FC = () => {
   } = useEpisodeBuilder();
 
   return (
-    <div className="space-y-5">
-      {/* Studio Header & Status Banners */}
+    <div className="space-y-3.5">
+      {/* Studio Header & Single Source of Truth 3-Tier Context Bar */}
       <BuilderStudioHeader
         nextEpisodeId={nextEpisodeId}
         selectedCount={selectedFootageIds.length}
@@ -113,14 +115,21 @@ export const EpisodeBuilderView: React.FC = () => {
         productionTarget={productionTarget}
         activeSubcategory={activeSubcategory}
         onOpenThreeTierManager={() => setIsThreeTierManagerOpen(true)}
+        onFocusStep1={
+          activeBuilderStep !== 1 ? () => setActiveBuilderStep(1) : undefined
+        }
         preselectNotice={preselectNotice}
         onDismissPreselectNotice={() => setPreselectNotice(null)}
         savedBannerMessage={savedBannerMessage}
         onNavigateTab={setActiveTab}
       />
 
-      {/* Step 1: 3-Tier Category Selection (Group -> Main Category -> Subcategory Target) */}
+      {/* Step 1: 3-Tier Category Selection */}
       <BuilderStep1CategoryTarget
+        isOpen={activeBuilderStep === 1}
+        onToggle={() => setActiveBuilderStep(1)}
+        onNextStep={() => setActiveBuilderStep(2)}
+        onSkipToStep3={() => setActiveBuilderStep(3)}
         groupStockStats={groupStockStats}
         selectedGroupId={selectedGroupId}
         activeGroup={activeGroup}
@@ -144,23 +153,22 @@ export const EpisodeBuilderView: React.FC = () => {
 
       {/* Step 2: 1-Click Smart Mix Recipe Selector */}
       <SmartMixRecipeSelector
+        isOpen={activeBuilderStep === 2}
+        onToggle={() => setActiveBuilderStep(2)}
+        onSkipToStep3={() => setActiveBuilderStep(3)}
         selectedFootages={selectedFootageObjects}
         activeRecipe={activeRecipe}
-        activeGroup={activeGroup}
         activeCategoryStat={activeCategoryStat}
-        productionTarget={productionTarget}
-        activeSubcategory={activeSubcategory}
-        onSelectRecipeAndMix={(recipe) =>
-          applyRecipeForCategory(mainCategoryTagId, recipe)
-        }
+        onSelectRecipeAndMix={(recipe) => {
+          applyRecipeForCategory(mainCategoryTagId, recipe);
+          setActiveBuilderStep(3);
+        }}
       />
 
-      {/* Diversity Collision Guard Banner */}
+      {/* Diversity & Collision Guard Banners (Only visible when actual issues exist) */}
       <DiversityCollisionBanner
         duplicateSubcategories={duplicateSubcategories}
       />
-
-      {/* Smart Collision & Cooldown Guard Banner */}
       <CollisionWarningBanner
         report={validationReport}
         selectedCount={selectedFootageIds.length}
@@ -168,6 +176,9 @@ export const EpisodeBuilderView: React.FC = () => {
 
       {/* Step 3: 5-Slot Ranking Workspace & Draggable Footage Pool */}
       <BuilderStep3RankingWorkspace
+        isOpen={activeBuilderStep === 3}
+        onToggle={() => setActiveBuilderStep(3)}
+        onNextStep={() => setActiveBuilderStep(4)}
         rankings={rankings}
         computedFootageMap={computedFootageMap}
         selectedFootageIds={selectedFootageIds}
@@ -209,12 +220,10 @@ export const EpisodeBuilderView: React.FC = () => {
 
       {/* Step 4: Auto-Generated Headline, Schedule & Save Form */}
       <BuilderStep4MetadataForm
+        isOpen={activeBuilderStep === 4}
+        onToggle={() => setActiveBuilderStep(4)}
         nextEpisodeId={nextEpisodeId}
         selectedCount={selectedFootageIds.length}
-        activeGroup={activeGroup}
-        activeCategoryStat={activeCategoryStat}
-        productionTarget={productionTarget}
-        activeSubcategory={activeSubcategory}
         previewMasterFileName={previewMasterFileName}
         title={title}
         onChangeTitle={setTitle}

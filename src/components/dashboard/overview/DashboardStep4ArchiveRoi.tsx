@@ -1,11 +1,17 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import {
+  Calendar,
   ChevronLeft,
+  Moon,
+  Package,
   PlaySquare,
   RefreshCw,
+  Repeat,
   Search,
+  Sun,
   X,
+  Zap,
 } from 'lucide-react';
 import { ActiveNavTab } from '../../../context/CMSContext';
 import { Episode } from '../../../types/episode.types';
@@ -61,7 +67,8 @@ export const DashboardStep4ArchiveRoi: React.FC<
           </span>
           <div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-              <span>📦 สเต็ปที่ 4: คลังคลิปหลัก 5 อันดับ & ตรวจสอบผลตอบแทนการใช้ซ้ำ</span>
+              <Package className="w-4 h-4 text-purple-600" />
+              <span>สเต็ปที่ 4: คลังคลิปหลัก 5 อันดับ & ตรวจสอบผลตอบแทนการใช้ซ้ำ</span>
             </h2>
             <p className="text-xs text-slate-500">
               ตรวจสอบประวัติการลงคลิป EP ย้อนหลัง และวัดผลความคุ้มค่าของการนำฟุตเทจกลับมาใช้ซ้ำ
@@ -94,7 +101,10 @@ export const DashboardStep4ArchiveRoi: React.FC<
       {/* Utilization ROI Metric Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/80 space-y-1">
-          <span className="text-xs text-slate-500 font-medium">📦 คลิปหลักทั้งหมดที่ผลิต</span>
+          <span className="text-xs text-slate-500 font-medium inline-flex items-center gap-1.5">
+            <Package className="w-3.5 h-3.5 text-slate-400" />
+            <span>คลิปหลักทั้งหมดที่ผลิต</span>
+          </span>
           <div className="text-xl font-bold font-mono text-slate-900 tabular-nums">
             {episodes.length} <span className="text-xs font-normal text-slate-500">ตอน (EP)</span>
           </div>
@@ -104,7 +114,10 @@ export const DashboardStep4ArchiveRoi: React.FC<
         </div>
 
         <div className="p-3.5 rounded-xl bg-indigo-50/50 border border-indigo-200/80 space-y-1">
-          <span className="text-xs text-indigo-900 font-medium">♻️ อัตรานำฟุตกลับมาใช้ซ้ำ</span>
+          <span className="text-xs text-indigo-900 font-medium inline-flex items-center gap-1.5">
+            <Repeat className="w-3.5 h-3.5 text-indigo-600" />
+            <span>อัตรานำฟุตกลับมาใช้ซ้ำ</span>
+          </span>
           <div className="text-xl font-bold font-mono text-indigo-700 tabular-nums">
             {metrics.utilizationRate}%
           </div>
@@ -114,7 +127,10 @@ export const DashboardStep4ArchiveRoi: React.FC<
         </div>
 
         <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/80 space-y-1">
-          <span className="text-xs text-emerald-950 font-medium">⚡ อัตราส่วนเฉลี่ยการหมุนเวียน</span>
+          <span className="text-xs text-emerald-950 font-medium inline-flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-emerald-600" />
+            <span>อัตราส่วนเฉลี่ยการหมุนเวียน</span>
+          </span>
           <div className="text-xl font-bold font-mono text-emerald-700 tabular-nums">
             {metrics.avgUsagePerClip} <span className="text-xs font-normal text-slate-500">ครั้ง/ฟุต</span>
           </div>
@@ -178,10 +194,23 @@ export const DashboardStep4ArchiveRoi: React.FC<
                   <div className="flex items-center gap-2 text-slate-500 font-mono tabular-nums">
                     <span className="font-bold text-indigo-700">{ep.id}</span>
                     <span>·</span>
-                    <span>📅 {formatThaiDate(ep.publishDate)}</span>
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-slate-400" />
+                      <span>{formatThaiDate(ep.publishDate)}</span>
+                    </span>
                     <span>·</span>
-                    <span>
-                      {ep.publishSlot === 'MORNING_0600' ? '🌅 06:00' : '🌆 18:00'}
+                    <span className="inline-flex items-center gap-1">
+                      {ep.publishSlot === 'MORNING_0600' ? (
+                        <>
+                          <Sun className="w-3 h-3 text-amber-500" />
+                          <span>06:00</span>
+                        </>
+                      ) : (
+                        <>
+                          <Moon className="w-3 h-3 text-indigo-500" />
+                          <span>18:00</span>
+                        </>
+                      )}
                     </span>
                   </div>
                   <button

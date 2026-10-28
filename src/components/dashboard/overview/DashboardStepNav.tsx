@@ -1,5 +1,13 @@
 import React from 'react';
-import { Layers, Sparkles } from 'lucide-react';
+import {
+  CheckCircle2,
+  Compass,
+  Layers,
+  Package,
+  PlusCircle,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
 import {
   DashboardMetrics,
   DashboardProductionRadarData,
@@ -34,8 +42,9 @@ export const DashboardStepNav: React.FC<DashboardStepNavProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold text-slate-900">
-              🧭 แผนผังนำทางการทำงาน 4 ขั้นตอน
+            <span className="text-base font-bold text-slate-900 inline-flex items-center gap-2">
+              <Compass className="w-5 h-5 text-indigo-600" />
+              <span>แผนผังนำทางการทำงาน 4 ขั้นตอน</span>
             </span>
             <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-md">
               Production Flow
@@ -98,7 +107,10 @@ export const DashboardStepNav: React.FC<DashboardStepNavProps> = ({
               >
                 1
               </span>
-              <span className="text-xs font-bold text-slate-900">➕ เติมฟุตเข้าคลัง</span>
+              <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1.5">
+                <PlusCircle className="w-3.5 h-3.5 text-indigo-600" />
+                <span>เติมฟุตเข้าคลัง</span>
+              </span>
             </div>
             {activeWorkflowStep === 1 && (
               <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-md shrink-0">
@@ -137,7 +149,10 @@ export const DashboardStepNav: React.FC<DashboardStepNavProps> = ({
               >
                 2
               </span>
-              <span className="text-xs font-bold text-slate-900">🟢 เช็กความสด & กฎพัก</span>
+              <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>เช็กความสด & กฎพัก</span>
+              </span>
             </div>
             {activeWorkflowStep === 2 && (
               <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md shrink-0">
@@ -176,7 +191,10 @@ export const DashboardStepNav: React.FC<DashboardStepNavProps> = ({
               >
                 3
               </span>
-              <span className="text-xs font-bold text-slate-900">🏆 จัดคลิป 5 อันดับ</span>
+              <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                <span>จัดคลิป 5 อันดับ</span>
+              </span>
             </div>
             {activeWorkflowStep === 3 && (
               <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-md shrink-0">
@@ -215,7 +233,10 @@ export const DashboardStepNav: React.FC<DashboardStepNavProps> = ({
               >
                 4
               </span>
-              <span className="text-xs font-bold text-slate-900">📦 คลังหลัก & ผลผลิต</span>
+              <span className="text-xs font-bold text-slate-900 inline-flex items-center gap-1.5">
+                <Package className="w-3.5 h-3.5 text-purple-600" />
+                <span>คลังหลัก & ผลผลิต</span>
+              </span>
             </div>
             {activeWorkflowStep === 4 && (
               <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded-md shrink-0">

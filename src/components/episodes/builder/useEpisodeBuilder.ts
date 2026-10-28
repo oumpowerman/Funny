@@ -20,6 +20,7 @@ import {
   generateNextId,
 } from '../../../utils/fileNameGenerator';
 import {
+  BuilderStepNumber,
   DEFAULT_RANKINGS_1_TO_5,
   DuplicateSubcategoryWarning,
   GroupStockStat,
@@ -174,6 +175,9 @@ export function useEpisodeBuilder() {
     () => (targetSubcategoryId ? tagMap[targetSubcategoryId] || null : null),
     [targetSubcategoryId, tagMap]
   );
+
+  // Active Progressive Accordion Step (1 | 2 | 3 | 4)
+  const [activeBuilderStep, setActiveBuilderStep] = useState<BuilderStepNumber>(1);
 
   // Step 2: Active Recipe State
   const [activeRecipe, setActiveRecipe] = useState<MixRecipeId>('FORMULA_2_NEW_3_FRESH');
@@ -426,10 +430,11 @@ export function useEpisodeBuilder() {
       };
     });
     setRankings(nextRankings);
+    setActiveBuilderStep(3);
     setPreselectNotice(
       `ดึงวัตถุดิบหมวด #${targetTag?.name || tagId} มาจัดเรียงช่องอันดับ 1–5 ครบ ${
         autoPicked.length
-      }/5 อันดับอัตโนมัติแล้ว! ลากสลับอันดับหรือเปลี่ยนช็อตได้ตามต้องการ`
+      }/5 อันดับอัตโนมัติแล้ว!`
     );
     clearBuilderPreselectRequest();
   }, [
@@ -709,6 +714,7 @@ export function useEpisodeBuilder() {
     );
     setPreselectNotice(null);
     setRankings(DEFAULT_RANKINGS_1_TO_5);
+    setActiveBuilderStep(1);
     setMasterDriveUrl('');
     setYoutubeUrl('');
     setFacebookUrl('');
@@ -744,6 +750,8 @@ export function useEpisodeBuilder() {
 
     // Identifiers & Notices
     nextEpisodeId,
+    activeBuilderStep,
+    setActiveBuilderStep,
     preselectNotice,
     setPreselectNotice,
     savedBannerMessage,

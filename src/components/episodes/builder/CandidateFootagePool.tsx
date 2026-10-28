@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowUpDown, ChevronRight, Globe, GripVertical, Search } from 'lucide-react';
+import { ArrowUpDown, ChevronRight, Globe, GripVertical, Search, Film, Video, Scissors, Zap, Sparkles, CheckCircle2, ListFilter, AlertTriangle } from 'lucide-react';
 import { CategoryMatrixStat } from '../../../context/CMSContext';
 import {
   EpisodeProductionTarget,
@@ -89,43 +89,17 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
   return (
     <div className="xl:col-span-6 bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3.5 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-        <div className="space-y-1">
-          <h3 className="text-sm font-extrabold text-slate-900">
-            🎞️ คลังฟุตเทจพร้อมหยิบ{' '}
-            {allowCrossCategory ? (
-              <span className="text-indigo-700">(เปิดโหมดดึงข้ามหมวด)</span>
-            ) : (
-              <span className="text-sky-700">
-                (ตามหมวดที่เลือก)
-              </span>
-            )}
-          </h3>
-          {!allowCrossCategory ? (
-            <div className="flex flex-wrap items-center gap-1 text-[11px]">
-              {activeGroup && (
-                <>
-                  <span className="px-1.5 py-0.5 rounded bg-purple-50 text-purple-900 border border-purple-200 font-bold">
-                    {activeGroup.icon} {activeGroup.name}
-                  </span>
-                  <ChevronRight className="w-3 h-3 text-slate-400" />
-                </>
-              )}
-              <span className="px-1.5 py-0.5 rounded bg-sky-50 text-sky-900 border border-sky-200 font-bold">
-                #{activeCategoryStat?.tag.name}
-              </span>
-              <ChevronRight className="w-3 h-3 text-slate-400" />
-              <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-950 border border-amber-200 font-bold">
-                {productionTarget === 'SINGLE_SUBCATEGORY_SPECIAL' && activeSubcategory
-                  ? `🎯 ${activeSubcategory.name}`
-                  : '🌟 รวมหลากประเด็น'}
-              </span>
-            </div>
+        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+          <Film className="w-4 h-4 text-indigo-600 shrink-0" />
+          <span>คลังฟุตเทจพร้อมหยิบ</span>{' '}
+          {allowCrossCategory ? (
+            <span className="text-indigo-700 text-xs font-semibold">(ดึงข้ามหมวด)</span>
           ) : (
-            <p className="text-[11px] text-slate-500">
-              กดเลือกกลุ่มหมวดหมู่ (Tier 0) ด้านล่างเพื่อกรองฟุตเทจข้ามหมวดได้ตามต้องการ
-            </p>
+            <span className="text-slate-500 text-xs font-semibold">
+              (#{activeCategoryStat?.tag.name})
+            </span>
           )}
-        </div>
+        </h3>
 
         <button
           type="button"
@@ -138,9 +112,7 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
         >
           <Globe className="w-3.5 h-3.5" />
           <span>
-            {allowCrossCategory
-              ? 'กำลังดึงข้ามหมวด (คลิกเพื่อกลับหมวดเดิม)'
-              : 'ดึงฟุตข้ามหมวดอื่นมาผสมด้วย'}
+            {allowCrossCategory ? 'กลับหมวดเดิม' : 'ดึงข้ามหมวด'}
           </span>
         </button>
       </div>
@@ -148,20 +120,22 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
       {/* Tier 0 CategoryGroup Filter Bar when Cross-Category Mode is Active */}
       {allowCrossCategory && (
         <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-2.5 space-y-1.5">
-          <div className="text-[11px] font-bold text-purple-950">
-            🗂️ กรองคลังฟุตเทจตามกลุ่มหมวดหมู่ (Tier 0):
+          <div className="text-[11px] font-bold text-purple-950 flex items-center gap-1">
+            <ListFilter className="w-3 h-3 text-purple-700" />
+            <span>กรองคลังฟุตเทจตามกลุ่มหมวดหมู่ (Tier 0):</span>
           </div>
           <div className="flex flex-wrap gap-1.5">
             <button
               type="button"
               onClick={() => onChangePoolFilterGroupId('ALL')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer ${
                 poolFilterGroupId === 'ALL'
                   ? 'bg-purple-600 text-white shadow-2xs'
                   : 'bg-white text-slate-700 border border-purple-200 hover:bg-purple-100/60'
               }`}
             >
-              🌐 ทุกกลุ่มหมวดหมู่
+              <Globe className="w-3 h-3" />
+              <span>ทุกกลุ่มหมวดหมู่</span>
             </button>
             {categoryGroups.map((grp) => (
               <button
@@ -189,38 +163,47 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
             [
               {
                 id: 'AVAILABLE_USABLE',
-                label: `⚡ พร้อมใช้ที่ยังว่าง (${
+                icon: Zap,
+                label: `พร้อมใช้ที่ยังว่าง (${
                   liveCategoryStock.remainingNew +
                   liveCategoryStock.remainingFresh
                 })`,
               },
               {
                 id: 'ONLY_NEW',
-                label: `🔵 เฉพาะฟุตใหม่ที่ว่าง (${liveCategoryStock.remainingNew})`,
+                icon: Sparkles,
+                label: `เฉพาะฟุตใหม่ที่ว่าง (${liveCategoryStock.remainingNew})`,
               },
               {
                 id: 'ONLY_FRESH',
-                label: `🟢 เฉพาะฟุตเก่าสดที่ว่าง (${liveCategoryStock.remainingFresh})`,
+                icon: CheckCircle2,
+                label: `เฉพาะฟุตเก่าสดที่ว่าง (${liveCategoryStock.remainingFresh})`,
               },
               {
                 id: 'ALL',
-                label: '📋 ดูทั้งหมดในหมวด',
+                icon: ListFilter,
+                label: 'ดูทั้งหมดในหมวด',
               },
             ] as const
-          ).map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onChangePoolQuickFilter(tab.id)}
-              className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${
-                poolQuickFilter === tab.id
-                  ? 'bg-indigo-600 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ).map((tab) => {
+            const TabIcon = tab.icon;
+            const isTabActive = poolQuickFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onChangePoolQuickFilter(tab.id)}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg inline-flex items-center gap-1 transition-colors cursor-pointer ${
+                  isTabActive
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <TabIcon className="w-3 h-3" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2">
@@ -242,8 +225,8 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
               onChange={(e) => onChangePickerSortBy(e.target.value as PickerSortBy)}
               className="px-2.5 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none cursor-pointer"
             >
-              <option value="REST_DAYS_DESC">⏱️ พักนานสุดขึ้นก่อน</option>
-              <option value="USAGE_90D_ASC">📉 ใช้ใน 90 วันน้อยสุด</option>
+              <option value="REST_DAYS_DESC">พักนานสุดขึ้นก่อน</option>
+              <option value="USAGE_90D_ASC">ใช้ใน 90 วันน้อยสุด</option>
             </select>
           </div>
         </div>
@@ -267,9 +250,10 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
               <button
                 type="button"
                 onClick={onEnableCrossCategory}
-                className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 cursor-pointer"
               >
-                🌐 ดึงฟุตข้ามหมวดอื่นมาช่วยผสม
+                <Globe className="w-3.5 h-3.5" />
+                <span>ดึงฟุตข้ามหมวดอื่นมาช่วยผสม</span>
               </button>
             </div>
           </div>
@@ -303,10 +287,18 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
                     <span className="font-extrabold text-slate-900">
                       {ft.id}
                     </span>
-                    <span className="text-slate-400 text-[11px]">
-                      {ft.ingestionFlow === 'DIRECT_1_TO_1'
-                        ? '📹 1:1'
-                        : `✂️ ${ft.sourceId}`}
+                    <span className="text-slate-400 text-[11px] inline-flex items-center gap-1">
+                      {ft.ingestionFlow === 'DIRECT_1_TO_1' ? (
+                        <>
+                          <Video className="w-3 h-3 text-indigo-500" />
+                          <span>1:1</span>
+                        </>
+                      ) : (
+                        <>
+                          <Scissors className="w-3 h-3 text-sky-500" />
+                          <span>{ft.sourceId}</span>
+                        </>
+                      )}
                     </span>
                   </div>
 
@@ -327,8 +319,9 @@ export const CandidateFootagePool: React.FC<CandidateFootagePoolProps> = ({
                 </div>
 
                 {collidingPartnerIds.length > 0 && !assignedRank && (
-                  <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
-                    ⚠️ เคยผสมคู่กับ {collidingPartnerIds.join(', ')} ใน EP ก่อนหน้า
+                  <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                    <span>เคยผสมคู่กับ {collidingPartnerIds.join(', ')} ใน EP ก่อนหน้า</span>
                   </div>
                 )}
 

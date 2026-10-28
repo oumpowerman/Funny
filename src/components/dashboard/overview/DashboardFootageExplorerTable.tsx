@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   ArrowUpDown,
   Check,
@@ -6,14 +5,17 @@ import {
   ExternalLink,
   Eye,
   Film,
+  MessageSquareQuote,
+  Scissors,
+  Video,
 } from 'lucide-react';
 import { ComputedFootage } from '../../../types/footage.types';
 import { CategoryTag } from '../../../types/tag.types';
 import { hasRealDriveLink } from '../../../utils/fileNameGenerator';
+import { StatusBadge } from '../../ui/StatusBadge';
 import {
   FlowFilter,
   FootageSortMode,
-  getStatusBadgeConfig,
 } from './dashboard.types';
 
 interface DashboardFootageExplorerTableProps {
@@ -59,26 +61,41 @@ export const DashboardFootageExplorerTable: React.FC<
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs">
-            {(
-              [
-                { id: 'ALL', label: 'ทั้งหมด' },
-                { id: 'DIRECT_1_TO_1', label: '📹 เดี่ยว 1:1' },
-                { id: 'SPLIT_1_TO_N', label: '✂️ หั่น 1:N' },
-              ] as const
-            ).map((fl) => (
-              <button
-                key={fl.id}
-                type="button"
-                onClick={() => setActiveFlowFilter(fl.id)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
-                  activeFlowFilter === fl.id
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {fl.label}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => setActiveFlowFilter('ALL')}
+              className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
+                activeFlowFilter === 'ALL'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              ทั้งหมด
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFlowFilter('DIRECT_1_TO_1')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
+                activeFlowFilter === 'DIRECT_1_TO_1'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Video className="w-3 h-3 text-slate-500" />
+              <span>เดี่ยว 1:1</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveFlowFilter('SPLIT_1_TO_N')}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
+                activeFlowFilter === 'SPLIT_1_TO_N'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Scissors className="w-3 h-3 text-indigo-500" />
+              <span>หั่น 1:N</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs">
@@ -88,7 +105,7 @@ export const DashboardFootageExplorerTable: React.FC<
               onChange={(e) => setFootageSortMode(e.target.value as FootageSortMode)}
               className="bg-transparent text-slate-800 font-semibold outline-none cursor-pointer"
             >
-              <option value="SMART_ROI">เรียง: คุ้มค่าพร้อมใช้ (🔵→🟢)</option>
+              <option value="SMART_ROI">เรียง: คุ้มค่าพร้อมใช้ (ใหม่ & สดก่อน)</option>
               <option value="REST_DAYS_DESC">เรียง: พักมานานที่สุด</option>
               <option value="USAGE_DESC">เรียง: ใช้ซ้ำมากที่สุด</option>
               <option value="Usage_ASC">เรียง: ใช้ซ้ำน้อยที่สุด</option>
@@ -125,7 +142,6 @@ export const DashboardFootageExplorerTable: React.FC<
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredFootages.slice(0, footageLimit).map((ft) => {
-                const badge = getStatusBadgeConfig(ft.cooldownStatus);
                 const isCopied = copiedId === ft.id;
                 return (
                   <tr
@@ -138,27 +154,39 @@ export const DashboardFootageExplorerTable: React.FC<
                         <span className="font-mono font-bold text-indigo-700 shrink-0">
                           {ft.id}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-mono shrink-0">
-                          {ft.ingestionFlow === 'DIRECT_1_TO_1' ? '📹 1:1' : '✂️ 1:N'}
+                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 font-mono shrink-0">
+                          {ft.ingestionFlow === 'DIRECT_1_TO_1' ? (
+                            <>
+                              <Video className="w-3 h-3 text-slate-400" />
+                              <span>1:1</span>
+                            </>
+                          ) : (
+                            <>
+                              <Scissors className="w-3 h-3 text-indigo-500" />
+                              <span>1:N</span>
+                            </>
+                          )}
                         </span>
                         <span className="font-bold text-slate-900 truncate max-w-[260px]">
                           {ft.title}
                         </span>
                       </div>
                       {ft.mascotNotes && (
-                        <div className="text-[11px] text-slate-500 truncate max-w-[320px] mt-0.5">
-                          💬 {ft.mascotNotes}
+                        <div className="flex items-center gap-1 text-[11px] text-slate-500 truncate max-w-[320px] mt-0.5">
+                          <MessageSquareQuote className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{ft.mascotNotes}</span>
                         </div>
                       )}
                     </td>
 
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-bold ${badge.bg}`}
-                      >
-                        <span>{badge.emoji}</span>
-                        <span>{badge.label}</span>
-                      </span>
+                      <StatusBadge
+                        status={ft.cooldownStatus}
+                        compact
+                        daysSinceLastUse={ft.daysSinceLastUsed}
+                        usageLast90Days={ft.usageLast90Days}
+                        totalUsageCount={ft.totalUsageCount}
+                      />
                     </td>
 
                     <td className="py-3 px-3 font-mono tabular-nums whitespace-nowrap">
@@ -170,8 +198,8 @@ export const DashboardFootageExplorerTable: React.FC<
                       </div>
                       <div className="text-[11px] text-slate-500">
                         {ft.daysSinceLastUsed === null
-                          ? '✨ ยังไม่เคยลงคลิปหลัก'
-                          : `พักมาแล้ว ${ft.daysSinceLastUsed} วัน`}
+                          ? 'ยังไม่เคยลงคลิปหลัก'
+                          : `พักแล้ว ${ft.daysSinceLastUsed} วัน`}
                       </div>
                     </td>
 
